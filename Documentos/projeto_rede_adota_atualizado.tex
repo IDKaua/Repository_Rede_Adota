@@ -1,0 +1,109 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{geometry}
+\geometry{a4paper, margin=2.5cm}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{xcolor}
+
+% Customizando as seções
+\titleformat{\section}{\large\bfseries\color{blue!60!black}}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\normalsize\bfseries\color{blue!50!black}}{\thesubsection}{0.5em}{}
+
+\title{\textbf{Projeto Rede Adota}}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-1.5cm}
+
+\section{Visão Geral do Projeto}
+A rede adota visa reunir ONGs em prol da causa animal promovendo doação, adoção, campanhas e eventos voltados à causa dos animais. O ecossistema foi projetado para que apenas ONGs cadastradas possam listar e gerenciar os animais, garantindo a procedência e a segurança do processo. Para realizar uma adoção ou uma doação de animais, os usuários passam por formulários estruturados que ajudam no alinhamento de expectativas e na triagem das solicitações.
+
+\section{Ciclo de Vida do Projeto}
+Para garantir um desenvolvimento consistente e alinhado aos objetivos, o projeto seguiu um ciclo de vida estruturado em quatro etapas principais:
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Definição de Escopo:}
+    \begin{itemize}
+        \item Levantamento dos requisitos do usuário e definição dos objetivos centrais.
+        \item Mapeamento das funcionalidades principais, como cadastro de ONGs, busca de animais.
+    \end{itemize}
+    \item \textbf{Análise de Viabilidade:}
+    \begin{itemize}
+        \item Avaliação de custo versus benefício.
+        \item Levantamento dos recursos tecnológicos necessários e análise preventiva de riscos.
+    \end{itemize}
+    \item \textbf{Documentação Inicial:}
+    \begin{itemize}
+        \item Construção do plano de projeto detalhado.
+        \item Criação dos diagramas UML e rascunho do manual do usuário.
+    \end{itemize}
+\end{enumerate}
+
+\section{Planejamento, Levantamento de Requisitos e Design}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Mapa Mental e Requisitos:} Para estruturar todas as regras de negócio e funcionalidades, foi desenvolvido um mapa mental abrangente. Ele serviu como guia visual para conectar as necessidades das ONGs e dos adotantes aos requisitos técnicos da aplicação.
+    \item \textbf{Prototipagem no Figma:} Com base nos requisitos definidos, foram criadas no Figma as telas da aplicação, focando em uma navegação intuitiva, acessível e agradável para o público final.
+    \item \textbf{Cronograma e Gestão:} O planejamento das entregas foi segmentado em fases (sprints), assegurando o cumprimento de prazos e o controle sobre o progresso das tarefas.
+\end{itemize}
+
+\section{Stack Tecnológica e Ferramentas do Projeto}
+Para viabilizar a execução da plataforma, selecionamos um conjunto robusto de ferramentas e tecnologias divididas em frentes principais:
+
+\subsection*{Controle de Versão e Colaboração}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Git:} Gerenciamento e controle de versão do código-fonte.
+    \item \textbf{GitHub:} Plataforma centralizadora do repositório para colaboração contínua entre a equipe de desenvolvimento.
+\end{itemize}
+
+\subsection*{Desenvolvimento da Aplicação}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Front-end:} Desenvolvido em React, JavaScript e Tailwind CSS, proporcionando uma interface moderna, rápida e responsiva.
+    \item \textbf{Back-end:} Estruturado em Node.js com Express para a criação de APIs REST eficientes.
+    \item \textbf{Otimização de Mídias:} Utilização de Multer e Sharp para o tratamento, envio e otimização do armazenamento de imagens dos animais.
+\end{itemize}
+
+\subsection*{Comunicação e Documentação}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{WhatsApp:} Alinhamentos pontuais e comunicação diária da equipe.
+    \item \textbf{Google Meet:} Reuniões de alinhamento e sessões de desenvolvimento conjunto (pair programming).
+    \item \textbf{Google Drive:} Armazenamento centralizado da documentação, arquivos de mídia e relatórios do projeto.
+\end{itemize}
+
+\section{Pontos Positivos e Negativos do Projeto Rede Adota}
+
+\subsection{Pontos Positivos}
+O projeto Rede Adota apresenta diversos aspectos positivos que contribuem para sua relevância social e tecnológica:
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Facilitação do processo de adoção:} A plataforma centraliza informações sobre cães e gatos disponíveis para adoção, tornando mais fácil para os usuários encontrar animais e conhecer suas características.
+    \item \textbf{Maior organização das ONGs:} Permite que as organizações cadastradas gerenciem os animais e suas informações de forma mais estruturada, reduzindo a necessidade de utilizar diferentes ferramentas para esse controle.
+    \item \textbf{Segurança e transparência:} A restrição do cadastro e gerenciamento dos animais às ONGS cadastradas contribui para aumentar a confiabilidade das informações disponibilizadas na plataforma.
+    \item \textbf{Impacto social positivo:} O projeto incentiva a adoção responsável, contribui para a redução do abandono de animais e aproxima pessoas interessadas em adotar das organizações de proteção animal.
+    \item \textbf{Interface moderna e responsiva:} O uso de React, JavaScript e Tailwind CSS possibilita o desenvolvimento de uma aplicação com navegação intuitiva e adaptação a diferentes tamanhos de tela.
+    \item \textbf{Organização do desenvolvimento:} A utilização de Git e GitHub facilita a divisão de tarefas, o acompanhamento das sprints e a colaboração entre os integrantes da equipe.
+    \item \textbf{Possibilidade de expansão:} A estrutura do projeto permite a inclusão futura de novas funcionalidades, como notificações, filtros avançados, acompanhamento de solicitações e melhorias no sistema de doações.
+\end{enumerate}
+
+\subsection{Pontos Negativos}
+Apesar de suas vantagens, o projeto também apresenta desafios e limitações que devem ser considerados durante o desenvolvimento:
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Dependência do cadastro das ONGs:} A qualidade e a quantidade de animais disponíveis na plataforma dependem da participação e atualização das informações pelas organizações cadastradas.
+    \item \textbf{Necessidade de atualização constante:} Os dados dos animais precisam ser mantidos atualizados, principalmente quando um animal é adotado, para evitar informações desatualizadas ou solicitações desnecessárias.
+    \item \textbf{Limitações de recursos financeiros:} O desenvolvimento e a manutenção da plataforma podem exigir investimentos em hospedagem, banco de dados, armazenamento de imagens e outros serviços tecnológicos.
+    \item \textbf{Desafios de segurança:} Por envolver dados pessoais de adotantes e informações das ONGs, o sistema necessita de medidas de segurança para proteger os usuários e evitar acessos não autorizados.
+    \item \textbf{Dependência de internet:} O acesso à plataforma depende de uma conexão com a internet, o que pode dificultar sua utilização por pessoas que possuem acesso limitado à rede.
+    \item \textbf{Complexidade na implementação:} A criação de funcionalidades como formulários de adoção, gerenciamento de usuários, sistema de mensagens e controle de permissões pode aumentar a complexidade do desenvolvimento.
+    \item \textbf{Necessidade de suporte e manutenção:} Após a implementação, será necessário corrigir possíveis erros, atualizar tecnologias e realizar melhorias para garantir o funcionamento adequado da plataforma.
+\end{enumerate}
+
+\subsection{Análise Geral}
+De maneira geral, a Rede Adota apresenta um equilíbrio entre benefícios sociais e desafios tecnológicos. Seus principais pontos positivos estão relacionados à organização do processo de adoção, ao apoio às ONGs e à possibilidade de aproximar animais de pessoas interessadas em oferecer um lar responsável.
+
+Por outro lado, as limitações relacionadas à atualização dos dados, à segurança das informações e à manutenção da plataforma demonstram a importância de um planejamento contínuo. Dessa forma, o projeto possui potencial para contribuir com a causa animal, desde que seus desafios sejam considerados durante as etapas de desenvolvimento e evolução do sistema.
+
+\end{document}
