@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Baloo+2:wght@400..800&display=swap');
+@import "tailwindcss";
+
+/*
+  Paleta Rede ADota
+  - forest : verde-floresta profundo -> identidade, menu, titulos (confianca)
+  - brand  : terracota quente        -> acoes e destaques (afeto, calor)
+  - sun    : ambar suave             -> selos e detalhes pontuais
+  - neutros quentes                  -> fundo e textos
+  Regra: uma cor de acao por bloco; fundo e texto sempre neutros.
+*/
+@theme {
+  /* Verde-floresta - institucional */
+  --color-forest-50: #EFF4F2;
+  --color-forest-100: #D9E6E1;
+  --color-forest-300: #9CBDB3;
+  --color-forest-500: #4F7D72;
+  --color-forest-600: #3D6459;
+  --color-forest-700: #2E4E45;
+  --color-forest-800: #223A34;
+  --color-forest-900: #172723;
+
+  /* Terracota - acoes principais */
+  --color-brand-50: #FDF5EF;
+  --color-brand-100: #FAE7D9;
+  --color-brand-200: #F4D2BA;
+  --color-brand-300: #EDB994;
+  --color-brand-500: #E07A3F;
+  --color-brand-600: #C7642F;
+  --color-brand-700: #A34F24;
+
+  /* Ambar - detalhes */
+  --color-sun-100: #FDF3E0;
+  --color-sun-300: #F5D79A;
+  --color-sun-400: #EFB759;
+  --color-sun-500: #DDA23F;
+  --color-sun-600: #C08A31;
+
+  /* Barras fixas */
+  --color-header: #FFFFFF;
+  --color-sidebar: #223A34;
+
+  /* Neutros quentes */
+  --color-ink: #2A2724;
+  --color-muted: #7A736B;
+  --color-surface: #FAF8F5;
+  --color-line: #E8E2DA;
+
+  /* Status da adocao */
+  --color-solicitado: #3B7EA1;
+  --color-analise: #D9A036;
+  --color-aprovado: #4C8B5B;
+  --color-recusado: #B4483E;
+
+  --font-sans: 'Outfit', sans-serif;
+  --font-display: 'Baloo 2', sans-serif;
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

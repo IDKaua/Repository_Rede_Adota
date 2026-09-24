@@ -1,0 +1,78 @@
+import React, { useContext } from 'react'
+import { FaPaw } from 'react-icons/fa6'
+import { AdocaoContext } from '../context/AdocaoContext'
+import Title from '../components/Title'
+import FiltroPets from '../components/FiltroPets'
+import PetCard from '../components/PetCard'
+
+const Animais = () => {
+
+  const { pets, ongs, especie, setEspecie, filtrarPets } = useContext(AdocaoContext);
+
+  const petsFiltrados = filtrarPets();
+
+  // As abas usam o total geral, os selects de filtro atuam sobre a listagem
+  const abas = [
+    { valor: 'Todos', label: 'Todos os Pets', total: pets.length },
+    { valor: 'Cachorro', label: 'Cachorros', total: pets.filter((p) => p.especie === 'Cachorro').length },
+    { valor: 'Gato', label: 'Gatos', total: pets.filter((p) => p.especie === 'Gato').length },
+  ];
+
+  return (
+    <div className='px-4 sm:px-6 lg:px-8 py-6'>
+
+      <Title
+        etiqueta='ADOÇÃO RESPONSÁVEL'
+        icone={<FaPaw />}
+        titulo='Animais para Adoção'
+        subtitulo='Descubra cachorros e gatos ansiosos por um lar amoroso e uma nova família.'
+      />
+
+      <FiltroPets />
+
+      {/* Abas por espécie */}
+      <div className='flex items-center gap-6 border-b border-line mb-6'>
+        {abas.map((aba) => (
+          <button
+            key={aba.valor}
+            onClick={() => setEspecie(aba.valor)}
+            className={`flex items-center gap-2 pb-3 text-sm transition-colors cursor-pointer ${especie === aba.valor ? 'text-forest-800 font-medium border-b-2 border-brand-500' : 'text-muted hover:text-ink'}`}
+          >
+            {aba.label}
+            <span className='bg-brand-50 text-brand-600 text-[10px] font-semibold px-1.5 py-0.5 rounded'>{aba.total}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Listagem agrupada por ONG */}
+      {petsFiltrados.length === 0 ? (
+        <p className='text-sm text-muted py-10 text-center'>Nenhum animal encontrado com os filtros selecionados.</p>
+      ) : (
+        ongs.map((ong) => {
+          const petsDaOng = petsFiltrados.filter((pet) => pet.ong === ong._id);
+          if (petsDaOng.length === 0) return null;
+
+          return (
+            <section key={ong._id} className='bg-brand-50/40 border border-line rounded-xl p-4 mb-5'>
+              <div className='flex items-center gap-2 mb-4'>
+                <div className={`w-7 h-7 rounded-full ${ong.cor} text-white text-[10px] font-semibold flex items-center justify-center`}>
+                  {ong.sigla}
+                </div>
+                <div>
+                  <p className='text-sm font-semibold text-forest-800'>{ong.nome}</p>
+                  <p className='text-[11px] text-muted'>{petsDaOng.length} animais disponíveis</p>
+                </div>
+              </div>
+
+              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
+                {petsDaOng.map((pet) => <PetCard key={pet._id} pet={pet} />)}
+              </div>
+            </section>
+          )
+        })
+      )}
+    </div>
+  )
+}
+
+export default Animais
