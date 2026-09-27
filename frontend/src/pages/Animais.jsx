@@ -1,4 +1,5 @@
 import React, { useContext } from 'react'
+import { Link } from 'react-router-dom'
 import { FaPaw } from 'react-icons/fa6'
 import { AdocaoContext } from '../context/AdocaoContext'
 import Title from '../components/Title'
@@ -54,15 +55,15 @@ const Animais = () => {
 
           return (
             <section key={ong._id} className='bg-brand-50/40 border border-line rounded-xl p-4 mb-5'>
-              <div className='flex items-center gap-2 mb-4'>
+              <Link to={`/ongs/${ong._id}`} className='flex items-center gap-2 mb-4 w-fit group'>
                 <div className={`w-7 h-7 rounded-full ${ong.cor} text-white text-[10px] font-semibold flex items-center justify-center`}>
                   {ong.sigla}
                 </div>
                 <div>
-                  <p className='text-sm font-semibold text-forest-800'>{ong.nome}</p>
+                  <p className='text-sm font-semibold text-forest-800 group-hover:text-brand-600 transition-colors'>{ong.nome}</p>
                   <p className='text-[11px] text-muted'>{petsDaOng.length} animais disponíveis</p>
                 </div>
-              </div>
+              </Link>
 
               <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
                 {petsDaOng.map((pet) => <PetCard key={pet._id} pet={pet} />)}

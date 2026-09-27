@@ -2,32 +2,38 @@ import React from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import Sidebar from './components/Sidebar'
-import Topbar from './components/Topbar'
-import Footer from './components/Footer'
+import Layout from './components/Layout'
 import Home from './pages/Home'
 import Animais from './pages/Animais'
+import Animal from './pages/Animal'
 import Eventos from './pages/Eventos'
+import Evento from './pages/Evento'
 import ONGs from './pages/ONGs'
+import Ong from './pages/Ong'
+import Login from './pages/Login'
 
 const App = () => {
   return (
-    <div className='min-h-screen bg-sidebar'>
-      <Sidebar />
-      <div className='lg:ml-64 min-h-screen flex flex-col bg-surface'>
-        <Topbar />
-        <main className='flex-1'>
-          <Routes>
-            <Route path='/' element={<Home />} />
-            <Route path='/animais' element={<Animais />} />
-            <Route path='/ongs' element={<ONGs />} />
-            <Route path='/eventos' element={<Eventos />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
+    <>
+      <Routes>
+        {/* Tela cheia, sem o menu do sistema */}
+        <Route path='/login' element={<Login />} />
+        <Route path='/cadastro' element={<Login modoInicial='Cadastro' />} />
+
+        {/* Telas internas, dentro do layout com menu lateral */}
+        <Route element={<Layout />}>
+          <Route path='/' element={<Home />} />
+          <Route path='/animais' element={<Animais />} />
+          <Route path='/animais/:petId' element={<Animal />} />
+          <Route path='/ongs' element={<ONGs />} />
+          <Route path='/ongs/:ongId' element={<Ong />} />
+          <Route path='/eventos' element={<Eventos />} />
+          <Route path='/eventos/:eventoId' element={<Evento />} />
+        </Route>
+      </Routes>
+
       <ToastContainer position='bottom-right' autoClose={2500} />
-    </div>
+    </>
   )
 }
 

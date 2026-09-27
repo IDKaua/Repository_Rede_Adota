@@ -1,21 +1,39 @@
 import React, { useContext } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { FaBars } from 'react-icons/fa6'
+import { FaArrowRightFromBracket, FaBars, FaRightToBracket } from 'react-icons/fa6'
 import { AdocaoContext } from '../context/AdocaoContext'
 
-// Nome da pagina atual usado na trilha de navegacao
+// Nome de cada secao usado na trilha de navegacao
 const titulos = {
-  '/animais': 'Animais',
-  '/ongs': 'ONGs & Protetores',
-  '/eventos': 'Eventos',
+  animais: 'Animais',
+  ongs: 'ONGs & Protetores',
+  eventos: 'Eventos',
+}
+
+// Monta a trilha a partir da rota: /animais/a1 -> Página Inicial • Animais • Detalhes do pet
+const montarTrilha = (pathname) => {
+  const partes = pathname.split('/').filter(Boolean);
+  const trilha = [{ label: 'Página Inicial', to: '/' }];
+
+  if (partes[0] && titulos[partes[0]]) {
+    trilha.push({ label: titulos[partes[0]], to: `/${partes[0]}` });
+  }
+
+  if (partes[1]) {
+    if (partes[0] === 'animais') trilha.push({ label: 'Detalhes do pet' });
+    if (partes[0] === 'eventos') trilha.push({ label: 'Detalhes do evento' });
+    if (partes[0] === 'ongs') trilha.push({ label: 'Perfil da ONG' });
+  }
+
+  return trilha;
 }
 
 const Topbar = () => {
 
-  const { setMenuAberto } = useContext(AdocaoContext);
+  const { setMenuAberto, ongLogada, sairDaConta } = useContext(AdocaoContext);
   const { pathname } = useLocation();
 
-  const paginaAtual = titulos[pathname];
+  const trilha = montarTrilha(pathname);
 
   return (
     <header className='sticky top-0 z-20 bg-header border-b border-line'>
@@ -26,26 +44,48 @@ const Topbar = () => {
             <FaBars />
           </button>
 
-          {/* Trilha: "Página Inicial" na home e "Página Inicial • Animais" nas demais */}
           <p className='text-xs truncate'>
-            {paginaAtual ? (
-              <>
-                <Link to='/' className='text-muted hover:text-ink'>Página Inicial</Link>
-                <span className='text-brand-500 mx-1.5'>•</span>
-                <span className='text-forest-800 font-medium'>{paginaAtual}</span>
-              </>
-            ) : (
-              <span className='text-forest-800 font-medium'>Página Inicial</span>
-            )}
+            {trilha.map((item, indice) => {
+              const ultimo = indice === trilha.length - 1;
+              return (
+                <span key={item.label}>
+                  {indice > 0 && <span className='text-brand-500 mx-1.5'>•</span>}
+                  {ultimo
+                    ? <span className='text-forest-800 font-medium'>{item.label}</span>
+                    : <Link to={item.to} className='text-muted hover:text-ink'>{item.label}</Link>}
+                </span>
+              )
+            })}
           </p>
         </div>
 
-        <div className='flex items-center gap-4'>
-          <div className='flex items-center gap-2'>
-            <p className='hidden sm:block text-sm text-ink'>Nome da ONG</p>
-            <div className='w-8 h-8 rounded-full bg-forest-700 text-white text-xs font-medium flex items-center justify-center'>AC</div>
+        {/* Sem sessão mostra o acesso das ONGs; com sessão, a ONG e o botão de sair */}
+        {ongLogada ? (
+          <div className='flex items-center gap-3'>
+            <Link to={`/ongs/${ongLogada._id}`} title='Ver meu perfil' className='flex items-center gap-2 group'>
+              <p className='hidden sm:block text-sm text-ink group-hover:text-brand-600 transition-colors'>{ongLogada.nome}</p>
+              <div className={`w-8 h-8 rounded-full ${ongLogada.cor} text-white text-[10px] font-semibold flex items-center justify-center`}>
+                {ongLogada.sigla}
+              </div>
+            </Link>
+            <button
+              onClick={sairDaConta}
+              title='Sair da conta'
+              className='text-muted hover:text-brand-500 transition-colors cursor-pointer'
+            >
+              <FaArrowRightFromBracket />
+            </button>
           </div>
-        </div>
+        ) : (
+          <Link
+            to='/login'
+            className='flex items-center gap-2 border border-line hover:border-brand-500 text-sm font-medium px-4 py-2 rounded-lg transition-colors whitespace-nowrap'
+          >
+            <FaRightToBracket className='text-xs text-brand-500' />
+            <span className='hidden sm:inline'>Entrar como ONG</span>
+            <span className='sm:hidden'>Entrar</span>
+          </Link>
+        )}
       </div>
     </header>
   )

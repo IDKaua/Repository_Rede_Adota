@@ -40,16 +40,48 @@ const AdocaoContextProvider = (props) => {
         })
     }
 
+
     // Enquanto nao existe a tela de formulario, apenas confirma a intencao
     const solicitarAdocao = (pet) => {
         toast.success(`Solicitação de adoção enviada para ${pet.nome}!`);
     }
 
-    const buscarOng = (ongId) => ongs.find((item) => item._id === ongId);
+
+    // A lista fica em estado porque a ONG pode editar o proprio perfil
+    const [listaOngs, setListaOngs] = useState(ongs);
+
+    const buscarOng = (ongId) => listaOngs.find((item) => item._id === ongId);
+
+    const atualizarOng = (ongId, novosDados) => {
+        setListaOngs((anterior) => anterior.map((item) => (
+            item._id === ongId ? { ...item, ...novosDados } : item
+        )));
+        toast.success('Perfil da ONG atualizado!');
+    }
+
+    // Sessao da ONG. Enquanto nao existe backend, o login apenas confere se o
+    // CNPJ pertence a uma ONG cadastrada; a senha ainda nao e verificada.
+    const [ongLogadaId, setOngLogadaId] = useState(null);
+    const ongLogada = listaOngs.find((item) => item._id === ongLogadaId) || null;
+
+    const entrarComoOng = (cnpjDigitado) => {
+        const ong = listaOngs.find((item) => item.cnpj === cnpjDigitado.replace(/\D/g, ''));
+
+        if (!ong) return null;
+
+        setOngLogadaId(ong._id);
+        toast.success(`Bem-vindo(a), ${ong.nome}!`);
+        return ong;
+    }
+
+    const sairDaConta = () => {
+        setOngLogadaId(null);
+        toast.info('Você saiu da conta.');
+    }
 
     const value = {
         pets,
-        ongs,
+        ongs: listaOngs,
         ongsParceiras,
         eventos,
         menuAberto,
@@ -65,7 +97,11 @@ const AdocaoContextProvider = (props) => {
         limparFiltros,
         filtrarPets,
         solicitarAdocao,
-        buscarOng
+        buscarOng,
+        atualizarOng,
+        ongLogada,
+        entrarComoOng,
+        sairDaConta
     }
 
     return (
