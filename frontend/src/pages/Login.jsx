@@ -287,7 +287,7 @@ const Login = ({ modoInicial = 'Login' }) => {
                     />
                     <Campo
                       className='sm:col-span-2'
-                      id='rua' rotulo='RUA / LOGRADOURO' type='text' placeholder='Nome da rua'
+                      id='rua' rotulo='RUA' type='text' placeholder='Nome da rua'
                       value={dados.rua} onChange={(e) => alterar('rua', e.target.value)} erro={erros.rua}
                     />
                   </div>

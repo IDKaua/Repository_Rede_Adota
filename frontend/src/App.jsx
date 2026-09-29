@@ -11,6 +11,9 @@ import Evento from './pages/Evento'
 import ONGs from './pages/ONGs'
 import Ong from './pages/Ong'
 import Login from './pages/Login'
+import NovoEvento from './pages/NovoEvento'
+import Adotar from './pages/Adotar'
+import Doar from './pages/Doar'
 
 const App = () => {
   return (
@@ -19,6 +22,9 @@ const App = () => {
         {/* Tela cheia, sem o menu do sistema */}
         <Route path='/login' element={<Login />} />
         <Route path='/cadastro' element={<Login modoInicial='Cadastro' />} />
+        <Route path='/eventos/novo' element={<NovoEvento />} />
+        <Route path='/animais/:petId/adotar' element={<Adotar />} />
+        <Route path='/ongs/:ongId/doar' element={<Doar />} />
 
         {/* Telas internas, dentro do layout com menu lateral */}
         <Route element={<Layout />}>

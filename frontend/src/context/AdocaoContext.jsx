@@ -41,14 +41,54 @@ const AdocaoContextProvider = (props) => {
     }
 
 
-    // Enquanto nao existe a tela de formulario, apenas confirma a intencao
-    const solicitarAdocao = (pet) => {
-        toast.success(`Solicitação de adoção enviada para ${pet.nome}!`);
+    // Ofertas de doacao de animais enviadas pelos tutores
+    const [doacoes, setDoacoes] = useState([]);
+
+    const enviarDoacao = (ong, formulario) => {
+        const doacao = {
+            _id: `d${Date.now()}`,
+            ong: ong._id,
+            status: 'Solicitado',
+            enviadaEm: new Date().toLocaleDateString('pt-BR'),
+            ...formulario,
+        };
+
+        setDoacoes((anterior) => [doacao, ...anterior]);
+        toast.success(`Formulário de doação enviado para ${ong.nome}!`);
+        return doacao;
+    }
+
+    // Solicitacoes de adocao enviadas pelo formulario
+    const [solicitacoes, setSolicitacoes] = useState([]);
+
+    const enviarSolicitacao = (pet, formulario) => {
+        const solicitacao = {
+            _id: `s${Date.now()}`,
+            pet: pet._id,
+            ong: pet.ong,
+            status: 'Solicitado',
+            enviadaEm: new Date().toLocaleDateString('pt-BR'),
+            ...formulario,
+        };
+
+        setSolicitacoes((anterior) => [solicitacao, ...anterior]);
+        toast.success(`Solicitação enviada para ${pet.nome}!`);
+        return solicitacao;
     }
 
 
     // A lista fica em estado porque a ONG pode editar o proprio perfil
     const [listaOngs, setListaOngs] = useState(ongs);
+
+    // Eventos tambem ficam em estado: a ONG cria novos pela plataforma
+    const [listaEventos, setListaEventos] = useState(eventos);
+
+    const criarEvento = (dadosEvento) => {
+        const novo = { ...dadosEvento, _id: `e${Date.now()}` };
+        setListaEventos((anterior) => [novo, ...anterior]);
+        toast.success('Evento criado e publicado na agenda!');
+        return novo;
+    }
 
     const buscarOng = (ongId) => listaOngs.find((item) => item._id === ongId);
 
@@ -83,7 +123,8 @@ const AdocaoContextProvider = (props) => {
         pets,
         ongs: listaOngs,
         ongsParceiras,
-        eventos,
+        eventos: listaEventos,
+        criarEvento,
         menuAberto,
         setMenuAberto,
         busca,
@@ -96,7 +137,10 @@ const AdocaoContextProvider = (props) => {
         setSexo,
         limparFiltros,
         filtrarPets,
-        solicitarAdocao,
+        solicitacoes,
+        doacoes,
+        enviarDoacao,
+        enviarSolicitacao,
         buscarOng,
         atualizarOng,
         ongLogada,

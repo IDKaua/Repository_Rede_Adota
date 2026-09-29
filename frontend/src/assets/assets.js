@@ -226,7 +226,6 @@ export const eventos = [
     detalhes: [
       { icone: 'seringa', rotulo: 'Vacinas aplicadas', valor: 'Antirrábica, V10 canina e V4 felina' },
       { icone: 'pata', rotulo: 'Público atendido', valor: 'Cães e gatos acima de 3 meses' },
-      { icone: 'dinheiro', rotulo: 'Valor', valor: 'Gratuito, com carteirinha entregue no local' },
     ],
   },
   {
@@ -239,7 +238,6 @@ export const eventos = [
     detalhes: [
       { icone: 'tesoura', rotulo: 'Procedimento', valor: 'Castração de cães e gatos, machos e fêmeas' },
       { icone: 'pata', rotulo: 'Vagas', valor: '24 vagas, por ordem de agendamento' },
-      { icone: 'dinheiro', rotulo: 'Valor', valor: 'R$ 80,00 (valor social), com pós-operatório incluso' },
       { icone: 'aviso', rotulo: 'Preparo', valor: 'Jejum de 8 horas antes do horário marcado' },
     ],
   },
@@ -266,7 +264,6 @@ export const eventos = [
     detalhes: [
       { icone: 'seringa', rotulo: 'Vacinas aplicadas', valor: 'Antirrábica, com vermifugação no mesmo dia' },
       { icone: 'pata', rotulo: 'Público atendido', valor: 'Cães e gatos acima de 3 meses' },
-      { icone: 'dinheiro', rotulo: 'Valor', valor: 'Gratuito' },
     ],
   },
   {
@@ -279,7 +276,6 @@ export const eventos = [
     detalhes: [
       { icone: 'tesoura', rotulo: 'Procedimento', valor: 'Castração de cães e gatos, com prioridade para fêmeas' },
       { icone: 'pata', rotulo: 'Vagas', valor: '15 vagas, com prioridade para animais comunitários' },
-      { icone: 'dinheiro', rotulo: 'Valor', valor: 'Gratuito para tutores de baixa renda e protetores' },
       { icone: 'aviso', rotulo: 'Preparo', valor: 'Jejum de 8 horas antes do horário marcado' },
     ],
   },

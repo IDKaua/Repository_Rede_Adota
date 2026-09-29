@@ -24,7 +24,7 @@ const ItemSaude = ({ rotulo, ok }) => (
 const Animal = () => {
 
   const { petId } = useParams();
-  const { pets, buscarOng, solicitarAdocao } = useContext(AdocaoContext);
+  const { pets, buscarOng } = useContext(AdocaoContext);
 
   const pet = pets.find((item) => item._id === petId);
 
@@ -109,12 +109,12 @@ const Animal = () => {
           <p className='text-[11px] text-muted'>Personalidade</p>
           <p className='text-sm text-ink mt-1'>{pet.personalidade}</p>
 
-          <button
-            onClick={() => solicitarAdocao(pet)}
-            className='w-full mt-5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium py-3 rounded-lg transition-colors cursor-pointer'
+          <Link
+            to={`/animais/${pet._id}/adotar`}
+            className='w-full mt-5 block text-center bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium py-3 rounded-lg transition-colors'
           >
             Quero adotar {pet.nome}
-          </button>
+          </Link>
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   FaArrowLeft, FaArrowRight, FaCircleCheck, FaEnvelope, FaFacebook, FaFileLines, FaGlobe,
   FaHandHoldingHeart, FaHeart, FaInstagram, FaLocationDot, FaPaw, FaPencil, FaPhone, FaPlus,
@@ -28,6 +28,7 @@ const Campo = ({ id, rotulo, textarea, className = '', ...props }) => (
 const Ong = () => {
 
   const { ongId } = useParams();
+  const navigate = useNavigate();
   const { pets, eventos, buscarOng, atualizarOng, ongLogada } = useContext(AdocaoContext);
 
   const ong = buscarOng(ongId);
@@ -284,7 +285,7 @@ const Ong = () => {
                   <p className='font-display text-lg font-bold text-forest-800 mt-3'>Doar animal</p>
                   <p className='text-sm text-muted mt-1'>Precisa encaminhar um animal? A ONG avalia cada pedido.</p>
                   <button
-                    onClick={() => emBreve('O formulário de doação')}
+                    onClick={() => navigate(`/ongs/${ong._id}/doar`)}
                     className='flex items-center justify-center gap-2 border border-brand-500 text-brand-600 hover:bg-brand-500 hover:text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors mt-4 cursor-pointer'
                   >
                     <FaFileLines className='text-xs' /> Acessar formulário
@@ -378,7 +379,7 @@ const Ong = () => {
 
             {ehDona && (
               <button
-                onClick={() => emBreve('A criação de eventos')}
+                onClick={() => navigate('/eventos/novo')}
                 className='flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors cursor-pointer'
               >
                 <FaPlus className='text-xs' /> Criar evento
