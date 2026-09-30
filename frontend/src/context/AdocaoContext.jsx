@@ -1,7 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useState } from "react";
+import { createContext, useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { eventos, ongs, ongsParceiras, pets } from "../assets/assets";
+import api from "../services/api"; // A nossa ligação ao Node.js
+// Removemos a importação do assets.js pois os dados agora vêm do banco!
 
 export const AdocaoContext = createContext();
 
@@ -10,7 +11,46 @@ const AdocaoContextProvider = (props) => {
     // Menu lateral no mobile
     const [menuAberto, setMenuAberto] = useState(false);
 
-    // Busca e filtros da pagina de Animais
+    // ============================================================
+    // 1. ESTADOS PRINCIPAIS (Vêm do PostgreSQL via Node.js)
+    // ============================================================
+    const [pets, setPets] = useState([]);
+    const [ongs, setListaOngs] = useState([]);
+    const [eventos, setListaEventos] = useState([]);
+    const [carregandoDados, setCarregandoDados] = useState(true);
+
+    // Efeito para carregar os dados iniciais ao abrir o site
+    useEffect(() => {
+        const carregarDadosDoBanco = async () => {
+            try {
+                // Carrega Pets e ONGs ao mesmo tempo
+                const [resPets, resOngs] = await Promise.all([
+                    api.get('/pets'),
+                    api.get('/ongs')
+                ]);
+                
+                setPets(resPets.data);
+                setListaOngs(resOngs.data);
+                
+                // Os eventos podem vir daqui também quando a rota GET /eventos estiver pronta
+                // const resEventos = await api.get('/eventos');
+                // setListaEventos(resEventos.data);
+
+            } catch (erro) {
+                console.error("Erro ao conectar com o banco:", erro);
+                toast.error("Falha ao carregar os dados do servidor.");
+            } finally {
+                setCarregandoDados(false);
+            }
+        };
+
+        carregarDadosDoBanco();
+    }, []);
+
+
+    // ============================================================
+    // 2. BUSCA E FILTROS DE ANIMAIS
+    // ============================================================
     const [busca, setBusca] = useState('');
     const [especie, setEspecie] = useState('Todos');
     const [porte, setPorte] = useState('Todos');
@@ -23,14 +63,13 @@ const AdocaoContextProvider = (props) => {
         setSexo('Todos');
     }
 
-    // Aplica busca + filtros sobre a lista de pets
     const filtrarPets = () => {
         return pets.filter((pet) => {
             const termo = busca.trim().toLowerCase();
             const combinaBusca = termo === ''
                 || pet.nome.toLowerCase().includes(termo)
                 || pet.raca.toLowerCase().includes(termo)
-                || pet.local.toLowerCase().includes(termo);
+                || (pet.cidade && pet.cidade.toLowerCase().includes(termo)); // Ajustado para o banco
 
             const combinaEspecie = especie === 'Todos' || pet.especie === especie;
             const combinaPorte = porte === 'Todos' || pet.porte === porte;
@@ -41,89 +80,80 @@ const AdocaoContextProvider = (props) => {
     }
 
 
-    // Ofertas de doacao de animais enviadas pelos tutores
-    const [doacoes, setDoacoes] = useState([]);
-
-    const enviarDoacao = (ong, formulario) => {
-        const doacao = {
-            _id: `d${Date.now()}`,
-            ong: ong._id,
-            status: 'Solicitado',
-            enviadaEm: new Date().toLocaleDateString('pt-BR'),
-            ...formulario,
-        };
-
-        setDoacoes((anterior) => [doacao, ...anterior]);
-        toast.success(`Formulário de doação enviado para ${ong.nome}!`);
-        return doacao;
+    // ============================================================
+    // 3. SOLICITAÇÕES (Adoção e Doação)
+    // ============================================================
+    const enviarDoacao = async (ong, formulario) => {
+        try {
+            await api.post('/solicitacoes/doacao', { ...formulario, id_ong: ong.id });
+            toast.success(`Formulário de doação enviado para ${ong.nome}!`);
+            return true;
+        } catch (erro) {
+            toast.error("Erro ao enviar doação.");
+            return false;
+        }
     }
 
-    // Solicitacoes de adocao enviadas pelo formulario
-    const [solicitacoes, setSolicitacoes] = useState([]);
-
-    const enviarSolicitacao = (pet, formulario) => {
-        const solicitacao = {
-            _id: `s${Date.now()}`,
-            pet: pet._id,
-            ong: pet.ong,
-            status: 'Solicitado',
-            enviadaEm: new Date().toLocaleDateString('pt-BR'),
-            ...formulario,
-        };
-
-        setSolicitacoes((anterior) => [solicitacao, ...anterior]);
-        toast.success(`Solicitação enviada para ${pet.nome}!`);
-        return solicitacao;
+    const enviarSolicitacao = async (pet, formulario) => {
+        try {
+            await api.post('/solicitacoes/adocao', { ...formulario, id_pet: pet.id, id_ong: pet.id_ong });
+            toast.success(`Solicitação enviada para adotar ${pet.nome}!`);
+            return true;
+        } catch (erro) {
+            toast.error("Erro ao enviar solicitação.");
+            return false;
+        }
     }
 
 
-    // A lista fica em estado porque a ONG pode editar o proprio perfil
-    const [listaOngs, setListaOngs] = useState(ongs);
-
-    // Eventos tambem ficam em estado: a ONG cria novos pela plataforma
-    const [listaEventos, setListaEventos] = useState(eventos);
-
-    const criarEvento = (dadosEvento) => {
-        const novo = { ...dadosEvento, _id: `e${Date.now()}` };
-        setListaEventos((anterior) => [novo, ...anterior]);
-        toast.success('Evento criado e publicado na agenda!');
-        return novo;
+    // ============================================================
+    // 4. ONGS E EVENTOS
+    // ============================================================
+    const criarEvento = async (dadosEvento) => {
+        // Implementaremos o POST de eventos aqui futuramente
+        toast.info('Criação de eventos integrada à API em breve.');
     }
 
-    const buscarOng = (ongId) => listaOngs.find((item) => item._id === ongId);
+    const buscarOng = (ongId) => ongs.find((item) => item.id === Number(ongId)); // PostgreSQL usa IDs numéricos
 
     const atualizarOng = (ongId, novosDados) => {
-        setListaOngs((anterior) => anterior.map((item) => (
-            item._id === ongId ? { ...item, ...novosDados } : item
-        )));
-        toast.success('Perfil da ONG atualizado!');
+        // Implementaremos o PUT /ongs aqui futuramente
+        toast.info('Atualização de perfil em breve.');
     }
 
-    // Sessao da ONG. Enquanto nao existe backend, o login apenas confere se o
-    // CNPJ pertence a uma ONG cadastrada; a senha ainda nao e verificada.
-    const [ongLogadaId, setOngLogadaId] = useState(null);
-    const ongLogada = listaOngs.find((item) => item._id === ongLogadaId) || null;
 
-    const entrarComoOng = (cnpjDigitado) => {
-        const ong = listaOngs.find((item) => item.cnpj === cnpjDigitado.replace(/\D/g, ''));
+    // ============================================================
+    // 5. AUTENTICAÇÃO (SESSÃO DA ONG REAL)
+    // ============================================================
+    const [ongLogada, setOngLogada] = useState(null);
 
-        if (!ong) return null;
+    // Quando o utilizador recarrega a página, tenta recuperar o login
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        const ongSalva = localStorage.getItem('ong_logada');
+        
+        if (token && ongSalva) {
+            setOngLogada(JSON.parse(ongSalva));
+        }
+    }, []);
 
-        setOngLogadaId(ong._id);
-        toast.success(`Bem-vindo(a), ${ong.nome}!`);
-        return ong;
+    // Chamado pelo Login.jsx quando o Node.js responde com sucesso
+    const entrarComoOng = (dadosDaOng) => {
+        setOngLogada(dadosDaOng);
+        localStorage.setItem('ong_logada', JSON.stringify(dadosDaOng));
     }
 
     const sairDaConta = () => {
-        setOngLogadaId(null);
+        setOngLogada(null);
+        localStorage.removeItem('token');
+        localStorage.removeItem('ong_logada');
         toast.info('Você saiu da conta.');
     }
 
     const value = {
         pets,
-        ongs: listaOngs,
-        ongsParceiras,
-        eventos: listaEventos,
+        ongs,
+        eventos,
         criarEvento,
         menuAberto,
         setMenuAberto,
@@ -137,15 +167,14 @@ const AdocaoContextProvider = (props) => {
         setSexo,
         limparFiltros,
         filtrarPets,
-        solicitacoes,
-        doacoes,
         enviarDoacao,
         enviarSolicitacao,
         buscarOng,
         atualizarOng,
         ongLogada,
         entrarComoOng,
-        sairDaConta
+        sairDaConta,
+        carregandoDados // Pode usar isto para mostrar um spinner no React enquanto o banco responde
     }
 
     return (

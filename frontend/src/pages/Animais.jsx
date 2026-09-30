@@ -12,6 +12,19 @@ const Animais = () => {
 
   const petsFiltrados = filtrarPets();
 
+  // Funções auxiliares para gerar sigla e cor da ONG (caso não venham do banco)
+  const gerarSigla = (nome) => {
+    if (!nome) return 'ON';
+    const palavras = nome.split(' ');
+    if (palavras.length >= 2) return (palavras[0][0] + palavras[1][0]).toUpperCase();
+    return nome.substring(0, 2).toUpperCase();
+  };
+
+  const obterCor = (id) => {
+    const cores = ['bg-brand-500', 'bg-forest-500', 'bg-blue-500', 'bg-orange-500', 'bg-purple-500'];
+    return cores[(id || 0) % cores.length];
+  };
+
   // As abas usam o total geral, os selects de filtro atuam sobre a listagem
   const abas = [
     { valor: 'Todos', label: 'Todos os Pets', total: pets.length },
@@ -50,14 +63,15 @@ const Animais = () => {
         <p className='text-sm text-muted py-10 text-center'>Nenhum animal encontrado com os filtros selecionados.</p>
       ) : (
         ongs.map((ong) => {
-          const petsDaOng = petsFiltrados.filter((pet) => pet.ong === ong._id);
+          // Alterado de pet.ong para pet.id_ong
+          const petsDaOng = petsFiltrados.filter((pet) => pet.id_ong === ong.id);
           if (petsDaOng.length === 0) return null;
 
           return (
-            <section key={ong._id} className='bg-brand-50/40 border border-line rounded-xl p-4 mb-5'>
-              <Link to={`/ongs/${ong._id}`} className='flex items-center gap-2 mb-4 w-fit group'>
-                <div className={`w-7 h-7 rounded-full ${ong.cor} text-white text-[10px] font-semibold flex items-center justify-center`}>
-                  {ong.sigla}
+            <section key={ong.id} className='bg-brand-50/40 border border-line rounded-xl p-4 mb-5'>
+              <Link to={`/ongs/${ong.id}`} className='flex items-center gap-2 mb-4 w-fit group'>
+                <div className={`w-7 h-7 rounded-full ${obterCor(ong.id)} text-white text-[10px] font-semibold flex items-center justify-center`}>
+                  {gerarSigla(ong.nome)}
                 </div>
                 <div>
                   <p className='text-sm font-semibold text-forest-800 group-hover:text-brand-600 transition-colors'>{ong.nome}</p>
@@ -66,7 +80,7 @@ const Animais = () => {
               </Link>
 
               <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
-                {petsDaOng.map((pet) => <PetCard key={pet._id} pet={pet} />)}
+                {petsDaOng.map((pet) => <PetCard key={pet.id} pet={pet} />)}
               </div>
             </section>
           )

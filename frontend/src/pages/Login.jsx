@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { FaArrowLeft, FaEye, FaEyeSlash, FaPaw } from 'react-icons/fa6'
 import { toast } from 'react-toastify'
 import axios from 'axios'
+import api from '../services/api' // Usa o axios configurado para a nossa API
 import { AdocaoContext } from '../context/AdocaoContext'
 import { assets } from '../assets/assets'
 
@@ -42,7 +43,7 @@ const camposVazios = {
 // Uma tela só: o estado "modo" troca entre entrar e cadastrar, sem mudar de página
 const Login = ({ modoInicial = 'Login' }) => {
 
-  const { ongs, entrarComoOng } = useContext(AdocaoContext);
+  const { entrarComoOng } = useContext(AdocaoContext);
   const navigate = useNavigate();
 
   const [modo, setModo] = useState(modoInicial);
@@ -50,6 +51,7 @@ const Login = ({ modoInicial = 'Login' }) => {
   const [erros, setErros] = useState({});
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [buscandoCep, setBuscandoCep] = useState(false);
+  const [loading, setLoading] = useState(false); // Adicionado para bloquear o botão durante o envio
 
   const cadastrando = modo === 'Cadastro';
 
@@ -100,7 +102,6 @@ const Login = ({ modoInicial = 'Login' }) => {
       const cepNumeros = dados.cep.replace(/\D/g, '');
 
       if (!dados.nome.trim()) novos.nome = 'Informe o nome da ONG.';
-      if (!novos.cnpj && ongs.some((ong) => ong.cnpj === cnpjNumeros)) novos.cnpj = 'Este CNPJ já está cadastrado na Rede ADota.';
       if (telefoneNumeros.length < 10) novos.telefone = 'Informe um telefone com DDD.';
       if (!/^\S+@\S+\.\S+$/.test(dados.email)) novos.email = 'Informe um e-mail válido.';
       if (dados.senha.length < 6) novos.senha = 'A senha deve ter pelo menos 6 caracteres.';
@@ -117,7 +118,7 @@ const Login = ({ modoInicial = 'Login' }) => {
     return Object.keys(novos).length === 0;
   }
 
-  const enviar = (e) => {
+  const enviar = async (e) => {
     e.preventDefault();
 
     if (!validar()) {
@@ -125,21 +126,62 @@ const Login = ({ modoInicial = 'Login' }) => {
       return;
     }
 
+    setLoading(true);
+
     if (cadastrando) {
-      toast.success('Cadastro enviado! Sua ONG passará por análise antes da liberação.');
-      setDados({ ...camposVazios, cnpj: dados.cnpj });
-      setModo('Login');
+      try {
+        // Envia os dados para a API (PostgreSQL)
+        const resposta = await api.post('/ongs/cadastro', {
+          nome: dados.nome,
+          cnpj: dados.cnpj.replace(/\D/g, ''), // Envia só os números para o banco
+          telefone: dados.telefone,
+          email: dados.email,
+          senha: dados.senha,
+          rua: dados.rua,
+          numero: dados.numero,
+          complemento: dados.complemento,
+          bairro: dados.bairro,
+          cidade: dados.cidade,
+          uf: dados.uf
+        });
+
+        toast.success(resposta.data.mensagem || 'Cadastro realizado com sucesso!');
+        setDados({ ...camposVazios, cnpj: dados.cnpj });
+        setModo('Login');
+      } catch (erro) {
+        console.error('Erro no cadastro:', erro);
+        toast.error(erro.response?.data?.erro || 'Erro ao realizar o cadastro. Tente novamente.');
+      } finally {
+        setLoading(false);
+      }
       return;
     }
 
-    const ong = entrarComoOng(dados.cnpj);
+    // LOGICA DE LOGIN (Se não estiver a cadastrar)
+    try {
+      // Faz o pedido à nova rota do Node.js
+      const resposta = await api.post('/ongs/login', {
+        cnpj: dados.cnpj.replace(/\D/g, ''), // Limpa a pontuação do CNPJ
+        senha: dados.senha
+      });
 
-    if (!ong) {
-      setErros({ cnpj: 'CNPJ não encontrado na Rede ADota.' });
-      return;
+      // Se der sucesso, guarda o token no navegador para o utilizador não perder a sessão
+      localStorage.setItem('token', resposta.data.token);
+      
+      toast.success(resposta.data.mensagem);
+      
+      // Aqui atualizamos o Contexto com os dados verdadeiros da ONG que vieram do banco
+      entrarComoOng(resposta.data.ong); 
+      
+      // Redireciona para a página inicial
+      navigate('/');
+      
+    } catch (erro) {
+      console.error('Erro no login:', erro);
+      toast.error(erro.response?.data?.erro || 'Erro ao tentar aceder. Verifique os seus dados.');
+    } finally {
+      setLoading(false);
     }
-
-    navigate('/');
   }
 
   return (
@@ -325,9 +367,10 @@ const Login = ({ modoInicial = 'Login' }) => {
 
               <button
                 type='submit'
-                className='w-full bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium py-3 rounded-lg transition-colors cursor-pointer mt-2'
+                disabled={loading}
+                className='w-full bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium py-3 rounded-lg transition-colors cursor-pointer mt-2 disabled:opacity-70'
               >
-                {cadastrando ? 'Concluir cadastro' : 'Entrar'}
+                {loading ? 'A processar...' : (cadastrando ? 'Concluir cadastro' : 'Entrar')}
               </button>
             </form>
 
@@ -342,15 +385,6 @@ const Login = ({ modoInicial = 'Login' }) => {
                 {cadastrando ? 'Faça login' : 'Cadastre-se aqui'}
               </button>
             </p>
-
-            {!cadastrando && (
-              <div className='bg-forest-50 border border-line rounded-lg p-3 mt-6'>
-                <p className='text-xs text-muted'>
-                  <span className='font-medium text-forest-800'>Para testar: </span>
-                  CNPJ <span className='font-medium text-forest-800'>12.345.678/0001-90</span> com qualquer senha.
-                </p>
-              </div>
-            )}
 
             {cadastrando && (
               <p className='text-xs text-muted text-center mt-4'>

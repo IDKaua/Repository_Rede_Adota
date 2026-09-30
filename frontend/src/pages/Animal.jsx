@@ -4,11 +4,11 @@ import { FaArrowLeft, FaCheck, FaWhatsapp, FaXmark } from 'react-icons/fa6'
 import { AdocaoContext } from '../context/AdocaoContext'
 import PetCard from '../components/PetCard'
 
-// Bloco de informacao usado na ficha do animal (Especie, Raca, Sexo...)
+// Bloco de informacao usado na ficha do animal
 const Info = ({ rotulo, valor }) => (
   <div>
     <p className='text-[11px] text-muted'>{rotulo}</p>
-    <p className='text-sm font-medium text-forest-800'>{valor}</p>
+    <p className='text-sm font-medium text-forest-800'>{valor || 'Não informado'}</p>
   </div>
 )
 
@@ -26,15 +26,39 @@ const Animal = () => {
   const { petId } = useParams();
   const { pets, buscarOng } = useContext(AdocaoContext);
 
-  const pet = pets.find((item) => item._id === petId);
+  // Parse do ID para numérico para comparar com o PostgreSQL
+  const pet = pets.find((item) => item.id === Number(petId));
 
-  // A foto escolhida guarda a qual animal pertence: ao trocar de pet pelos
-  // cards relacionados, a galeria volta sozinha para a primeira imagem
   const [selecionada, setSelecionada] = useState({ petId: null, foto: null });
 
-  const imagem = selecionada.petId === petId ? selecionada.foto : (pet?.fotos?.[0] || pet?.imagem);
+  // Funções auxiliares para gerar sigla e cor da ONG
+  const gerarSigla = (nome) => {
+    if (!nome) return 'ON';
+    const palavras = nome.split(' ');
+    if (palavras.length >= 2) return (palavras[0][0] + palavras[1][0]).toUpperCase();
+    return nome.substring(0, 2).toUpperCase();
+  };
 
-  // Volta ao topo da pagina quando o animal muda
+  const obterCor = (id) => {
+    const cores = ['bg-brand-500', 'bg-forest-500', 'bg-blue-500', 'bg-orange-500', 'bg-purple-500'];
+    return cores[(id || 0) % cores.length];
+  };
+
+  const formatarIdade = (meses) => {
+    if (!meses) return 'Desconhecida';
+    if (meses < 12) return `${meses} meses`;
+    const anos = Math.floor(meses / 12);
+    return `${anos} ano${anos > 1 ? 's' : ''}`;
+  };
+
+  // Prepara as URLs das imagens baseadas na resposta da API
+  const fotosValidas = pet?.fotos?.length > 0 
+    ? pet.fotos.map(f => `http://localhost:5000${f.url_foto}`) 
+    : ['https://via.placeholder.com/600x400?text=Sem+Foto'];
+
+  const imagemCapa = fotosValidas[0];
+  const imagem = selecionada.petId === petId && selecionada.foto ? selecionada.foto : imagemCapa;
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [petId]);
@@ -42,7 +66,7 @@ const Animal = () => {
   if (!pet) {
     return (
       <div className='px-4 sm:px-6 lg:px-8 py-16 text-center'>
-        <p className='text-sm text-muted'>Animal não encontrado.</p>
+        <p className='text-sm text-muted'>Animal não encontrado ou a carregar os dados.</p>
         <Link to='/animais' className='inline-block mt-4 text-sm font-medium text-brand-600 hover:text-brand-700'>
           Voltar para a lista
         </Link>
@@ -50,9 +74,16 @@ const Animal = () => {
     )
   }
 
-  const ong = buscarOng(pet.ong);
-  const galeria = pet.fotos?.length ? pet.fotos : [pet.imagem];
-  const relacionados = pets.filter((item) => item.ong === pet.ong && item._id !== pet._id).slice(0, 4);
+  const ong = buscarOng(pet.id_ong);
+  const galeria = fotosValidas;
+  const relacionados = pets.filter((item) => item.id_ong === pet.id_ong && item.id !== pet.id).slice(0, 4);
+
+  // Avalia o texto "condicao_saude" livre e infere se tem os marcadores (para o visual dos "checks")
+  const condicao = pet.condicao_saude ? pet.condicao_saude.toLowerCase() : '';
+  const vacinado = condicao.includes('vacinad');
+  const vermifugado = condicao.includes('vermifugad');
+  const castrado = condicao.includes('castrad');
+  const microchipado = condicao.includes('chip') || condicao.includes('microchip');
 
   return (
     <div className='px-4 sm:px-6 lg:px-8 py-6'>
@@ -65,24 +96,23 @@ const Animal = () => {
       <div className='flex flex-col lg:flex-row gap-6'>
 
         <div className='flex-1'>
-          {/* A moldura acompanha o tamanho da foto, sem sobrar espaço em branco */}
           <div className='flex justify-center'>
             <img
               src={imagem}
               alt={pet.nome}
-              className='max-w-full max-h-112 rounded-xl border border-line'
+              className='w-full aspect-square md:aspect-4/3 lg:max-h-112 object-cover rounded-xl border border-line'
             />
           </div>
 
           {galeria.length > 1 && (
-            <div className='flex gap-3 mt-3'>
+            <div className='flex gap-3 mt-3 overflow-x-auto pb-2'>
               {galeria.map((item, indice) => (
                 <img
                   key={indice}
                   onClick={() => setSelecionada({ petId, foto: item })}
                   src={item}
                   alt={`${pet.nome} - foto ${indice + 1}`}
-                  className={`w-24 h-16 object-cover rounded-lg cursor-pointer border-2 transition-colors ${item === imagem ? 'border-brand-500' : 'border-line hover:border-brand-300'}`}
+                  className={`w-24 h-16 object-cover rounded-lg cursor-pointer border-2 transition-colors shrink-0 ${item === imagem ? 'border-brand-500' : 'border-line hover:border-brand-300'}`}
                 />
               ))}
             </div>
@@ -97,20 +127,20 @@ const Animal = () => {
 
           <div className='grid grid-cols-2 gap-y-4 gap-x-3'>
             <Info rotulo='Espécie' valor={pet.especie} />
-            <Info rotulo='Raça' valor={pet.raca} />
+            <Info rotulo='Raça' valor={pet.raca || 'SRD'} />
             <Info rotulo='Sexo' valor={pet.sexo} />
-            <Info rotulo='Idade' valor={pet.idade} />
+            <Info rotulo='Idade' valor={formatarIdade(pet.idade_meses)} />
             <Info rotulo='Porte' valor={pet.porte} />
-            <Info rotulo='Localização' valor={pet.local} />
+            <Info rotulo='Localização' valor={ong ? `${ong.cidade} - ${ong.uf}` : 'Não informado'} />
           </div>
 
           <div className='border-t border-line my-4'></div>
 
-          <p className='text-[11px] text-muted'>Personalidade</p>
-          <p className='text-sm text-ink mt-1'>{pet.personalidade}</p>
+          <p className='text-[11px] text-muted'>Personalidade / Detalhes</p>
+          <p className='text-sm text-ink mt-1'>{pet.descricao}</p>
 
           <Link
-            to={`/animais/${pet._id}/adotar`}
+            to={`/animais/${pet.id}/adotar`}
             className='w-full mt-5 block text-center bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium py-3 rounded-lg transition-colors'
           >
             Quero adotar {pet.nome}
@@ -121,56 +151,61 @@ const Animal = () => {
       {/* Historia, saude e ONG */}
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-5 mt-6'>
 
-        <div className='bg-white border border-line rounded-xl p-5'>
-          <p className='font-display font-semibold text-forest-800 mb-3'>Sobre {pet.nome}</p>
-          <p className='text-sm text-muted leading-relaxed'>{pet.historia}</p>
-        </div>
-
-        <div className='bg-white border border-line rounded-xl p-5'>
-          <p className='font-display font-semibold text-forest-800 mb-3'>Saúde e cuidados</p>
-          <div className='flex flex-col gap-2'>
-            <ItemSaude rotulo='Vacinado' ok={pet.vacinado} />
-            <ItemSaude rotulo='Vermifugado' ok={pet.vermifugado} />
-            <ItemSaude rotulo='Castrado' ok={pet.castrado} />
-            <ItemSaude rotulo='Microchipado' ok={pet.microchipado} />
-          </div>
-          <div className='border-t border-line my-4'></div>
-          <p className='text-sm'>
-            <span className='font-medium text-forest-800'>Necessidades especiais: </span>
-            <span className='text-muted'>{pet.necessidadesEspeciais}</span>
-          </p>
-        </div>
-
-        <div className='bg-white border border-line rounded-xl p-5 flex flex-col'>
-          <div className='flex items-center gap-2'>
-            <div className={`w-8 h-8 rounded-full ${ong.cor} text-white text-[10px] font-semibold flex items-center justify-center`}>
-              {ong.sigla}
+        <div className='bg-white border border-line rounded-xl p-5 lg:col-span-2'>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+            <div>
+              <p className='font-display font-semibold text-forest-800 mb-3'>Sobre {pet.nome}</p>
+              <p className='text-sm text-muted leading-relaxed'>{pet.descricao}</p>
             </div>
             <div>
-              <p className='font-display font-semibold text-forest-800 leading-tight'>{ong.nome}</p>
-              <p className='text-[11px] text-muted'>{ong.local}</p>
+              <p className='font-display font-semibold text-forest-800 mb-3'>Saúde e cuidados</p>
+              <div className='flex flex-col gap-2'>
+                <ItemSaude rotulo='Vacinado' ok={vacinado} />
+                <ItemSaude rotulo='Vermifugado' ok={vermifugado} />
+                <ItemSaude rotulo='Castrado' ok={castrado} />
+                <ItemSaude rotulo='Microchipado' ok={microchipado} />
+              </div>
+              <div className='border-t border-line my-4'></div>
+              <p className='text-sm'>
+                <span className='font-medium text-forest-800'>Condições relatadas: </span>
+                <span className='text-muted'>{pet.condicao_saude || 'Nenhuma condição especial relatada.'}</span>
+              </p>
             </div>
           </div>
-
-          <p className='text-sm text-muted leading-relaxed mt-3'>{ong.descricao}</p>
-
-          <Link to={`/ongs/${ong._id}`} className='text-sm font-medium text-brand-600 hover:text-brand-700 underline mt-3'>
-            Ver perfil da ONG
-          </Link>
-
-          <div className='border-t border-line my-4'></div>
-
-          <p className='text-sm font-medium text-forest-800'>Fale com o protetor</p>
-          <a
-            href={`https://wa.me/${ong.whatsapp}?text=${encodeURIComponent(`Olá! Tenho interesse em adotar o(a) ${pet.nome} que vi na Rede ADota.`)}`}
-            target='_blank'
-            rel='noreferrer'
-            className='flex items-center justify-center gap-2 bg-forest-700 hover:bg-forest-800 text-white text-sm font-medium py-2.5 rounded-lg transition-colors mt-3'
-          >
-            <FaWhatsapp /> Conversar pelo WhatsApp
-          </a>
-          <p className='text-[11px] text-muted text-center mt-2'>Você será redirecionado para o WhatsApp.</p>
         </div>
+
+        {ong && (
+          <div className='bg-white border border-line rounded-xl p-5 flex flex-col'>
+            <div className='flex items-center gap-2'>
+              <div className={`w-8 h-8 rounded-full ${obterCor(ong.id)} text-white text-[10px] font-semibold flex items-center justify-center`}>
+                {gerarSigla(ong.nome)}
+              </div>
+              <div>
+                <p className='font-display font-semibold text-forest-800 leading-tight'>{ong.nome}</p>
+                <p className='text-[11px] text-muted'>{ong.cidade} - {ong.uf}</p>
+              </div>
+            </div>
+
+            <p className='text-sm text-muted leading-relaxed mt-3 line-clamp-3'>{ong.descricao}</p>
+
+            <Link to={`/ongs/${ong.id}`} className='text-sm font-medium text-brand-600 hover:text-brand-700 underline mt-3'>
+              Ver perfil da ONG
+            </Link>
+
+            <div className='border-t border-line my-4'></div>
+
+            <p className='text-sm font-medium text-forest-800'>Fale com o protetor</p>
+            <a
+              href={`https://wa.me/${ong.telefone?.replace(/\D/g, '')}?text=${encodeURIComponent(`Olá! Tenho interesse em adotar o(a) ${pet.nome} que vi na Rede ADota.`)}`}
+              target='_blank'
+              rel='noreferrer'
+              className='flex items-center justify-center gap-2 bg-forest-700 hover:bg-forest-800 text-white text-sm font-medium py-2.5 rounded-lg transition-colors mt-3'
+            >
+              <FaWhatsapp /> Conversar pelo WhatsApp
+            </a>
+            <p className='text-[11px] text-muted text-center mt-2'>Você será redirecionado para o WhatsApp.</p>
+          </div>
+        )}
       </div>
 
       {/* Outros animais da mesma ONG */}
@@ -186,7 +221,7 @@ const Animal = () => {
           </div>
 
           <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
-            {relacionados.map((item) => <PetCard key={item._id} pet={item} />)}
+            {relacionados.map((item) => <PetCard key={item.id} pet={item} />)}
           </div>
         </section>
       )}

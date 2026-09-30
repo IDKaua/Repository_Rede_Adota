@@ -9,6 +9,9 @@ const PetsDisponiveis = () => {
 
   const { pets } = useContext(AdocaoContext);
 
+  // Pequena proteção: enquanto os dados estão a carregar da API, evita que o React dê erro de "undefined"
+  if (!pets) return null;
+
   return (
     <section className='mt-8'>
 
@@ -24,10 +27,12 @@ const PetsDisponiveis = () => {
       </div>
 
       <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4'>
-        {pets.slice(0, 5).map((pet) => <PetCard key={pet._id} pet={pet} />)}
+        {/* Alterado para pet.id (formato do PostgreSQL) em vez de pet._id */}
+        {pets.slice(0, 5).map((pet) => <PetCard key={pet.id} pet={pet} />)}
       </div>
     </section>
   )
 }
 
-export default PetsDisponiveis
+// ESTA É A LINHA QUE ESTAVA A FALTAR OU COM ERRO:
+export default PetsDisponiveis;
