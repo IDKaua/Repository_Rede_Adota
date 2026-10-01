@@ -35,6 +35,19 @@ const Topbar = () => {
 
   const trilha = montarTrilha(pathname);
 
+  // Funções auxiliares para manter a cor e a sigla consistentes com o resto do sistema
+  const gerarSigla = (nome) => {
+    if (!nome) return 'ON';
+    const palavras = nome.split(' ');
+    if (palavras.length >= 2) return (palavras[0][0] + palavras[1][0]).toUpperCase();
+    return nome.substring(0, 2).toUpperCase();
+  };
+
+  const obterCor = (id) => {
+    const cores = ['bg-brand-500', 'bg-forest-500', 'bg-blue-500', 'bg-orange-500', 'bg-purple-500'];
+    return cores[(id || 0) % cores.length];
+  };
+
   return (
     <header className='sticky top-0 z-20 bg-header border-b border-line'>
       <div className='flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-3'>
@@ -62,12 +75,15 @@ const Topbar = () => {
         {/* Sem sessão mostra o acesso das ONGs; com sessão, a ONG e o botão de sair */}
         {ongLogada ? (
           <div className='flex items-center gap-3'>
-            <Link to={`/ongs/${ongLogada._id}`} title='Ver meu perfil' className='flex items-center gap-2 group'>
+            {/* CORREÇÃO: Removido o _id e alterado para id */}
+            <Link to={`/ongs/${ongLogada.id}`} title='Ver meu perfil' className='flex items-center gap-2 group'>
               <p className='hidden sm:block text-sm text-ink group-hover:text-brand-600 transition-colors'>{ongLogada.nome}</p>
-              <div className={`w-8 h-8 rounded-full ${ongLogada.cor} text-white text-[10px] font-semibold flex items-center justify-center`}>
-                {ongLogada.sigla}
+              
+              <div className={`w-8 h-8 rounded-full ${obterCor(ongLogada.id)} text-white text-[10px] font-semibold flex items-center justify-center`}>
+                {gerarSigla(ongLogada.nome)}
               </div>
             </Link>
+            
             <button
               onClick={sairDaConta}
               title='Sair da conta'

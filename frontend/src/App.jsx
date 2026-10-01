@@ -14,6 +14,7 @@ import Login from './pages/Login'
 import NovoEvento from './pages/NovoEvento'
 import Adotar from './pages/Adotar'
 import Doar from './pages/Doar'
+import FormularioAdocao from './pages/FormularioAdocao';
 
 const App = () => {
   return (
@@ -23,7 +24,7 @@ const App = () => {
         <Route path='/login' element={<Login />} />
         <Route path='/cadastro' element={<Login modoInicial='Cadastro' />} />
         <Route path='/eventos/novo' element={<NovoEvento />} />
-        <Route path='/animais/:petId/adotar' element={<Adotar />} />
+        <Route path='/animais/:petId/adotar/formulario' element={<Adotar />} />
         <Route path='/ongs/:ongId/doar' element={<Doar />} />
 
         {/* Telas internas, dentro do layout com menu lateral */}
