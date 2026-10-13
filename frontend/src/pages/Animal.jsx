@@ -136,11 +136,11 @@ const Animal = () => {
 
           <div className='border-t border-line my-4'></div>
 
-          <p className='text-[11px] text-muted'>Personalidade / Detalhes</p>
-          <p className='text-sm text-ink mt-1'>{pet.descricao}</p>
+          <p className='text-[11px] text-muted'>Personalidade</p>
+          <p className='text-sm text-ink mt-1'>{pet.personalidade || pet.descricao}</p>
 
           <Link
-            to={`/animais/${pet.id}/adotar`}
+            to={`/animais/${pet.id}/adotar/formulario`}
             className='w-full mt-5 block text-center bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium py-3 rounded-lg transition-colors'
           >
             Quero adotar {pet.nome}
@@ -170,6 +170,12 @@ const Animal = () => {
                 <span className='font-medium text-forest-800'>Condições relatadas: </span>
                 <span className='text-muted'>{pet.condicao_saude || 'Nenhuma condição especial relatada.'}</span>
               </p>
+              {pet.necessidades_especiais && (
+                <p className='text-sm mt-2'>
+                  <span className='font-medium text-forest-800'>Necessidades especiais: </span>
+                  <span className='text-muted'>{pet.descricao_necessidades || 'Sim'}</span>
+                </p>
+              )}
             </div>
           </div>
         </div>

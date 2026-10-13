@@ -4,6 +4,14 @@ import { FaArrowLeft, FaCircleCheck, FaPaw, FaWhatsapp } from 'react-icons/fa6'
 import { toast } from 'react-toastify'
 import { AdocaoContext } from '../context/AdocaoContext'
 import formularioImagem from '../assets/logo.png'
+import { whatsappOng } from '../utils/ong'
+
+const formatarIdade = (meses) => {
+  if (!meses) return 'Idade desconhecida';
+  if (meses < 12) return `${meses} meses`;
+  const anos = Math.floor(meses / 12);
+  return `${anos} ano${anos > 1 ? 's' : ''}`;
+}
 
 const Campo = ({ id, rotulo, erro, textarea, opcoes, className = '', ...props }) => {
   const estilo = `w-full bg-white border rounded-lg px-4 py-3 text-sm outline-none transition-colors placeholder:text-muted ${erro ? 'border-recusado' : 'border-line focus:border-forest-500'}`;
@@ -48,7 +56,7 @@ const Adotar = () => {
   const { petId } = useParams();
   const { pets, buscarOng, enviarSolicitacao } = useContext(AdocaoContext);
 
-  const pet = pets.find((item) => item._id === petId);
+  const pet = pets.find((item) => item.id === Number(petId));
 
   const [dados, setDados] = useState(camposVazios);
   const [erros, setErros] = useState({});
@@ -68,7 +76,9 @@ const Adotar = () => {
     )
   }
 
-  const ong = buscarOng(pet.ong);
+  // Se a lista de ONGs ainda não carregou, usa o nome que já vem junto com o pet
+  const ong = buscarOng(pet.id_ong) || { nome: pet.ong_nome };
+  const fotoCapa = pet.fotos?.find((foto) => foto.foto_capa) || pet.fotos?.[0];
 
   const alterar = (campo, valor) => {
     setDados((anterior) => ({ ...anterior, [campo]: valor }));
@@ -115,7 +125,7 @@ const Adotar = () => {
     <div className='min-h-screen bg-surface'>
       <div className='max-w-3xl mx-auto px-4 sm:px-6 py-8'>
 
-        <Link to={`/animais/${pet._id}`} className='inline-flex items-center gap-2 text-sm text-muted hover:text-ink'>
+        <Link to={`/animais/${pet.id}`} className='inline-flex items-center gap-2 text-sm text-muted hover:text-ink'>
           <FaArrowLeft className='text-xs' /> Voltar para {pet.nome}
         </Link>
 
@@ -143,12 +153,14 @@ const Adotar = () => {
 
           {/* Resumo do animal escolhido */}
           <div className='bg-white border border-line rounded-xl p-4 flex items-center gap-4'>
-            <img src={pet.imagem} alt={pet.nome} className='w-20 h-20 object-cover rounded-lg' />
+            {fotoCapa
+              ? <img src={`http://localhost:5000${fotoCapa.url_foto}`} alt={pet.nome} className='w-20 h-20 object-cover rounded-lg' />
+              : <span className='w-20 h-20 bg-forest-50 rounded-lg flex items-center justify-center text-forest-300 text-2xl shrink-0'><FaPaw /></span>}
             <div className='min-w-0'>
               <p className='text-[11px] text-muted'>Solicitação de adoção para</p>
               <p className='font-display text-xl font-bold text-forest-800'>{pet.nome}</p>
               <p className='text-xs text-muted truncate'>
-                {pet.especie} • {pet.raca} • {pet.idade} — {ong.nome}
+                {pet.especie} • {pet.raca || 'SRD'} • {formatarIdade(pet.idade_meses)} — {ong.nome}
               </p>
             </div>
           </div>
@@ -172,7 +184,7 @@ const Adotar = () => {
                   Ver outros animais
                 </Link>
                 <a
-                  href={`https://wa.me/${ong.whatsapp}?text=${encodeURIComponent(`Olá! Acabei de enviar uma solicitação de adoção do(a) ${pet.nome} pela Rede ADota.`)}`}
+                  href={`https://wa.me/${whatsappOng(ong)}?text=${encodeURIComponent(`Olá! Acabei de enviar uma solicitação de adoção do(a) ${pet.nome} pela Rede ADota.`)}`}
                   target='_blank'
                   rel='noreferrer'
                   className='flex items-center gap-2 border border-line hover:border-brand-500 text-sm font-medium px-5 py-2.5 rounded-lg transition-colors'

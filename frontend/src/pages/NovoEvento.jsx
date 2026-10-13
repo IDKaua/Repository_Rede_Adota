@@ -73,6 +73,7 @@ const NovoEvento = () => {
   const [capa, setCapa] = useState(null);
   const [erros, setErros] = useState({});
   const [aceite, setAceite] = useState(false);
+  const [enviando, setEnviando] = useState(false);
 
   const config = tipos[tipo];
 
@@ -115,15 +116,6 @@ const NovoEvento = () => {
     setErros((anterior) => ({ ...anterior, capa: '' }));
   }
 
-  // Formata "2026-01-12" como "Sáb, 12 jan", igual aos cards
-  const formatarData = (valor) => {
-    const [ano, mes, dia] = valor.split('-').map(Number);
-    const data = new Date(ano, mes - 1, dia);
-    const semana = data.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
-    const mesCurto = data.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
-    return `${semana.charAt(0).toUpperCase()}${semana.slice(1)}, ${String(dia).padStart(2, '0')} ${mesCurto}`;
-  }
-
   const validar = () => {
     const novos = {};
 
@@ -146,7 +138,7 @@ const NovoEvento = () => {
     return Object.keys(novos).length === 0;
   }
 
-  const publicar = (e) => {
+  const publicar = async (e) => {
     e.preventDefault();
 
     if (!validar()) {
@@ -169,25 +161,25 @@ const NovoEvento = () => {
       })),
     ];
 
-    const novo = criarEvento({
+    setEnviando(true);
+    const novo = await criarEvento({
+      id_ong: ongLogada.id,
       tipo,
-      titulo: dados.titulo,
-      ong: ongLogada._id,
-      data: formatarData(dados.data),
-      horario: `${dados.horaInicio}-${dados.horaFim}`,
-      local: dados.local,
-      descricao: dados.sobre.slice(0, 120),
-      destaque: dados.capacidade,
+      titulo: dados.titulo.trim(),
+      data: dados.data,
+      hora_inicio: dados.horaInicio,
+      hora_fim: dados.horaFim,
+      local_texto: dados.local.trim(),
+      descricao: dados.sobre.trim(),
+      destaque: dados.capacidade.trim(),
       publico: dados.publico,
-      inscricao: dados.publico !== acessos[0],
-      imagem: capa.previa,
-      sobre: dados.sobre,
       requisitos,
       detalhes,
-      observacoes: dados.observacoes,
-    });
+      observacoes: dados.observacoes.trim(),
+    }, capa.arquivo);
+    setEnviando(false);
 
-    navigate(`/eventos/${novo._id}`);
+    if (novo) navigate(`/eventos/${novo.id}`);
   }
 
   // Só ONG logada cria evento
@@ -213,7 +205,7 @@ const NovoEvento = () => {
     <div className='min-h-screen bg-surface'>
       <div className='max-w-3xl mx-auto px-4 sm:px-6 py-8'>
 
-        <Link to={`/ongs/${ongLogada._id}`} className='inline-flex items-center gap-2 text-sm text-muted hover:text-ink'>
+        <Link to={`/ongs/${ongLogada.id}`} className='inline-flex items-center gap-2 text-sm text-muted hover:text-ink'>
           <FaArrowLeft className='text-xs' /> Voltar para o perfil
         </Link>
 
@@ -422,9 +414,10 @@ const NovoEvento = () => {
 
             <button
               type='submit'
-              className='w-full flex items-center justify-center gap-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium py-3.5 rounded-lg transition-colors cursor-pointer'
+              disabled={enviando}
+              className='w-full flex items-center justify-center gap-2 bg-brand-500 hover:bg-brand-600 disabled:opacity-60 disabled:cursor-wait text-white text-sm font-medium py-3.5 rounded-lg transition-colors cursor-pointer'
             >
-              <FaCalendarDays className='text-xs' /> Criar evento
+              <FaCalendarDays className='text-xs' /> {enviando ? 'Publicando...' : 'Criar evento'}
             </button>
           </form>
         </div>

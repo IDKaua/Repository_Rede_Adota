@@ -36,6 +36,13 @@ import castracao2 from './castracao-2.jpg'
 
 export const assets = { logo }
 
+// Capa padrão por tipo, para eventos salvos sem imagem
+export const capasEvento = {
+  'Feiras de Adoção': feiraAdocao1,
+  'Campanhas de Vacinação': vacinacao1,
+  'Mutirão de Castração': castracao1,
+}
+
 
 export const ongsParceiras = [
   { _id: 'p1', nome: 'WWF', sigla: 'WWF', cor: 'bg-forest-600' },

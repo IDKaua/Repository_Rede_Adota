@@ -2,8 +2,53 @@
 import { createContext, useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import api from "../services/api";
+import { assets, capasEvento } from "../assets/assets";
 
 export const AdocaoContext = createContext();
+
+// Formata "2026-01-12" como "Seg, 12 jan", o formato usado nos cards
+const formatarData = (valor) => {
+    if (!valor) return 'Data a definir';
+    const [ano, mes, dia] = valor.split('-').map(Number);
+    const data = new Date(ano, mes - 1, dia);
+    const semana = data.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
+    const mesCurto = data.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
+    return `${semana.charAt(0).toUpperCase()}${semana.slice(1)}, ${String(dia).padStart(2, '0')} ${mesCurto}`;
+}
+
+// Converte a linha do banco para o formato que as telas de eventos usam
+const normalizarEvento = (linha) => {
+    let sobre = linha.descricao || '';
+    let { tipo, publico, destaque } = linha;
+
+    // Eventos antigos guardavam tipo, público e animais juntos no fim da descrição
+    const antigo = sobre.match(/^(.*?) \| Tipo: (.*?) \| Público: (.*?) \| Animais: (.*)$/s);
+    if (!tipo && antigo) {
+        [, sobre, tipo, publico, destaque] = antigo;
+    }
+
+    const horario = [linha.hora_inicio_texto, linha.hora_fim_texto].filter(Boolean).join('-');
+
+    return {
+        id: linha.id,
+        id_ong: linha.id_ong,
+        ong_nome: linha.ong_nome,
+        tipo: tipo || 'Feiras de Adoção',
+        titulo: linha.titulo_evento,
+        data: formatarData(linha.data_iso),
+        horario: horario || 'Horário a definir',
+        local: linha.local_texto || 'Local não informado',
+        descricao: sobre.length > 120 ? `${sobre.slice(0, 120).trim()}...` : sobre,
+        sobre,
+        destaque: destaque || '',
+        publico: publico || 'Aberto ao público',
+        inscricao: Boolean(publico) && publico !== 'Aberto ao público',
+        imagem: linha.url_imagem ? `http://localhost:5000${linha.url_imagem}` : (capasEvento[tipo] || assets.logo),
+        requisitos: Array.isArray(linha.requisitos) ? linha.requisitos : [],
+        detalhes: Array.isArray(linha.detalhes) ? linha.detalhes : [],
+        observacoes: linha.observacoes || '',
+    }
+}
 
 const AdocaoContextProvider = (props) => {
 
@@ -24,7 +69,7 @@ const AdocaoContextProvider = (props) => {
                 
                 setPets(resPets.data);
                 setListaOngs(resOngs.data);
-                setListaEventos(resEventos.data);
+                setListaEventos(resEventos.data.map(normalizarEvento));
             } catch (erro) {
                 console.error("Erro ao conectar com o banco:", erro);
                 toast.error("Falha ao carregar os dados do servidor.");
@@ -78,8 +123,46 @@ const AdocaoContextProvider = (props) => {
         }
     }
 
-    const criarEvento = async (dadosEvento) => {
-        toast.info('Criação de eventos integrada à API em breve.');
+    // Envia os dados e as fotos do animal; depois recarrega a lista para ele aparecer em Animais
+    const cadastrarPet = async (dadosPet, fotos) => {
+        try {
+            const formulario = new FormData();
+            Object.entries(dadosPet).forEach(([campo, valor]) => formulario.append(campo, valor));
+            fotos.forEach((foto) => formulario.append('fotos', foto));
+
+            const resposta = await api.post('/pets', formulario);
+            const resPets = await api.get('/pets');
+            setPets(resPets.data);
+
+            toast.success(`${dadosPet.nome} foi cadastrado(a) para adoção!`);
+            return resposta.data.petId;
+        } catch (erro) {
+            console.error('Erro ao cadastrar pet:', erro);
+            toast.error(erro.response?.data?.erro || 'Erro ao cadastrar o animal. Tente novamente.');
+            return null;
+        }
+    }
+
+    // Envia o evento com a capa; depois recarrega a agenda para ele aparecer na lista e no perfil da ONG
+    const criarEvento = async (dadosEvento, capa) => {
+        try {
+            const formulario = new FormData();
+            Object.entries(dadosEvento).forEach(([campo, valor]) => {
+                formulario.append(campo, Array.isArray(valor) ? JSON.stringify(valor) : valor);
+            });
+            if (capa) formulario.append('imagem', capa);
+
+            const resposta = await api.post('/eventos', formulario);
+            const resEventos = await api.get('/eventos');
+            setListaEventos(resEventos.data.map(normalizarEvento));
+
+            toast.success('Evento publicado na agenda!');
+            return { id: resposta.data.eventoId };
+        } catch (erro) {
+            console.error('Erro ao criar evento:', erro);
+            toast.error(erro.response?.data?.erro || 'Erro ao publicar o evento. Tente novamente.');
+            return null;
+        }
     }
 
     const buscarOng = (ongId) => ongs.find((item) => item.id === Number(ongId));
@@ -129,7 +212,7 @@ const AdocaoContextProvider = (props) => {
     }
 
     const value = {
-        pets, ongs, eventos, criarEvento, menuAberto, setMenuAberto, busca, setBusca, especie, setEspecie, porte, setPorte, sexo, setSexo, limparFiltros, filtrarPets, enviarDoacao, enviarSolicitacao, buscarOng, atualizarOng, ongLogada, entrarComoOng, sairDaConta, carregandoDados
+        pets, ongs, eventos, criarEvento, cadastrarPet, menuAberto, setMenuAberto, busca, setBusca, especie, setEspecie, porte, setPorte, sexo, setSexo, limparFiltros, filtrarPets, enviarDoacao, enviarSolicitacao, buscarOng, atualizarOng, ongLogada, entrarComoOng, sairDaConta, carregandoDados
     }
 
     return (

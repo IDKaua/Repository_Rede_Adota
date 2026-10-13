@@ -6,6 +6,7 @@ const multer = require('multer');
 const sharp = require('sharp');
 const path = require('path');
 const jwt = require('jsonwebtoken');
+const fs = require('fs');
 
 const storage = multer.memoryStorage();
 const upload = multer({ 
@@ -17,6 +18,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// A pasta de uploads não vai para o git, então é criada ao iniciar o servidor
+fs.mkdirSync(path.join(__dirname, 'uploads'), { recursive: true });
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Garante que as colunas extras de perfil existem na tabela ONG ao iniciar o servidor
@@ -27,6 +30,26 @@ pool.query(`
     ADD COLUMN IF NOT EXISTS facebook VARCHAR(100), 
     ADD COLUMN IF NOT EXISTS site VARCHAR(100);
 `).catch(() => console.log('Aviso: Estrutura da tabela ONG já atualizada.'));
+
+// Campos extras do formulário de cadastro de animal
+pool.query(`
+    ALTER TABLE pet
+    ADD COLUMN IF NOT EXISTS personalidade TEXT,
+    ADD COLUMN IF NOT EXISTS necessidades_especiais BOOLEAN DEFAULT FALSE,
+    ADD COLUMN IF NOT EXISTS descricao_necessidades TEXT;
+`).catch(() => console.log('Aviso: Estrutura da tabela PET já atualizada.'));
+
+// Campos extras do formulário de criação de evento (antes iam todos juntos na descrição)
+pool.query(`
+    ALTER TABLE evento
+    ADD COLUMN IF NOT EXISTS tipo VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS hora_fim TIME,
+    ADD COLUMN IF NOT EXISTS publico VARCHAR(100),
+    ADD COLUMN IF NOT EXISTS destaque TEXT,
+    ADD COLUMN IF NOT EXISTS requisitos JSONB DEFAULT '[]',
+    ADD COLUMN IF NOT EXISTS detalhes JSONB DEFAULT '[]',
+    ADD COLUMN IF NOT EXISTS observacoes TEXT;
+`).catch(() => console.log('Aviso: Estrutura da tabela EVENTO já atualizada.'));
 
 // 1. Rota de Cadastro de ONG
 app.post('/api/ongs/cadastro', async (req, res) => {
@@ -59,14 +82,14 @@ app.post('/api/ongs/cadastro', async (req, res) => {
 
 // 2. Rota para cadastrar Pet
 app.post('/api/pets', upload.array('fotos', 5), async (req, res) => {
-    const { id_ong, nome, especie, raca, sexo, idade_meses, porte, condicao_saude, descricao } = req.body;
+    const { id_ong, nome, especie, raca, sexo, idade_meses, porte, condicao_saude, descricao, personalidade, necessidades_especiais, descricao_necessidades } = req.body;
     if (!req.files || req.files.length === 0) return res.status(400).json({ erro: 'Envie pelo menos uma foto.' });
 
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
-        const queryPet = `INSERT INTO pet (id_ong, nome, especie, raca, sexo, idade_meses, porte, condicao_saude, descricao) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`;
-        const resPet = await client.query(queryPet, [id_ong, nome, especie, raca, sexo, idade_meses, porte, condicao_saude, descricao]);
+        const queryPet = `INSERT INTO pet (id_ong, nome, especie, raca, sexo, idade_meses, porte, condicao_saude, descricao, personalidade, necessidades_especiais, descricao_necessidades) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`;
+        const resPet = await client.query(queryPet, [id_ong, nome, especie, raca, sexo, idade_meses, porte, condicao_saude, descricao, personalidade || null, necessidades_especiais === 'true', descricao_necessidades || null]);
         const petId = resPet.rows[0].id;
 
         const processamentoFotos = req.files.map(async (file, index) => {
@@ -203,23 +226,43 @@ app.get('/api/pets/:id', async (req, res) => {
 
 // 8. Rota Criar Evento
 app.post('/api/eventos', upload.single('imagem'), async (req, res) => {
-    const { id_ong, titulo, data, hora, local_texto, descricao, tipo, publico, animais } = req.body;
+    const { id_ong, titulo, data, hora_inicio, hora_fim, local_texto, descricao, tipo, publico, destaque, requisitos, detalhes, observacoes } = req.body;
+    if (!id_ong || !titulo || !data || !hora_inicio) return res.status(400).json({ erro: 'Preencha os campos obrigatórios do evento.' });
+
+    // Listas chegam como texto JSON por causa do envio em multipart (por causa da imagem)
+    const lerLista = (valor) => {
+        try {
+            const lista = JSON.parse(valor);
+            return JSON.stringify(Array.isArray(lista) ? lista : []);
+        } catch {
+            return '[]';
+        }
+    };
+
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
         let urlImagem = null;
         if (req.file) {
+            // 3:2, a mesma proporção dos cards de evento
             const nomeUnico = `evento-${Date.now()}.webp`;
-            await sharp(req.file.buffer).resize(1200, 600, { fit: 'cover' }).webp({ quality: 80 }).toFile(path.join(__dirname, 'uploads', nomeUnico));
+            await sharp(req.file.buffer).resize(1200, 800, { fit: 'cover' }).webp({ quality: 80 }).toFile(path.join(__dirname, 'uploads', nomeUnico));
             urlImagem = `/uploads/${nomeUnico}`;
         }
         const resEndereco = await client.query(`INSERT INTO endereco (logradouro, bairro, cidade) VALUES ($1, 'Não informado', 'Não informado') RETURNING id`, [local_texto || 'Local não especificado']);
-        const descricaoCompleta = `${descricao} | Tipo: ${tipo} | Público: ${publico} | Animais: ${animais}`.trim();
-        const resEvento = await client.query(`INSERT INTO evento (id_endereco, id_ong, titulo_evento, descricao, data_evento, hora_evento, url_imagem) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`, [resEndereco.rows[0].id, id_ong, titulo, descricaoCompleta, data, hora, urlImagem]);
+        const queryEvento = `
+            INSERT INTO evento (id_endereco, id_ong, titulo_evento, descricao, data_evento, hora_evento, url_imagem, tipo, hora_fim, publico, destaque, requisitos, detalhes, observacoes)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING id
+        `;
+        const resEvento = await client.query(queryEvento, [
+            resEndereco.rows[0].id, id_ong, titulo, descricao, data, hora_inicio, urlImagem,
+            tipo, hora_fim || null, publico, destaque, lerLista(requisitos), lerLista(detalhes), observacoes || null,
+        ]);
         await client.query('COMMIT');
         res.status(201).json({ mensagem: 'Evento criado!', eventoId: resEvento.rows[0].id, url_imagem: urlImagem });
     } catch (erro) {
         await client.query('ROLLBACK');
+        console.error('Erro ao criar evento:', erro);
         res.status(500).json({ erro: 'Falha ao criar o evento.' });
     } finally {
         client.release();
@@ -246,8 +289,12 @@ app.post('/api/ongs/login', async (req, res) => {
 app.get('/api/eventos', async (req, res) => {
     try {
         const query = `
-            SELECT e.*, o.nome AS ong_nome, ender.logradouro AS local_texto
-            FROM evento e 
+            SELECT e.*, o.nome AS ong_nome, ender.logradouro AS local_texto,
+            -- Data e hora como texto para o fuso horário não mudar o dia no navegador
+            to_char(e.data_evento::date, 'YYYY-MM-DD') AS data_iso,
+            to_char(e.hora_evento::time, 'HH24:MI') AS hora_inicio_texto,
+            to_char(e.hora_fim, 'HH24:MI') AS hora_fim_texto
+            FROM evento e
             LEFT JOIN ong o ON e.id_ong = o.id 
             LEFT JOIN endereco ender ON e.id_endereco = ender.id 
             ORDER BY e.data_evento ASC;

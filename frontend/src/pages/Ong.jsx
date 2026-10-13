@@ -5,7 +5,6 @@ import {
   FaHandHoldingHeart, FaHeart, FaInstagram, FaLocationDot, FaPaw, FaPencil, FaPhone, FaPlus,
   FaQrcode, FaShieldHalved, FaWhatsapp,
 } from 'react-icons/fa6'
-import { toast } from 'react-toastify'
 import { AdocaoContext } from '../context/AdocaoContext'
 import PetCard from '../components/PetCard'
 import EventoCard from '../components/EventoCard'
@@ -106,8 +105,6 @@ const Ong = () => {
     atualizarOng(ong.id, rascunho);
     setEditando(false);
   }
-
-  const emBreve = (acao) => toast.info(`${acao} estará disponível em breve.`);
 
   // Formata o número para o link do WhatsApp (apenas números)
   const numeroWhats = ong.telefone ? String(ong.telefone).replace(/\D/g, '') : '';
@@ -409,7 +406,7 @@ const Ong = () => {
 
             {ehDona && (
               <button
-                onClick={() => emBreve('Criação de Eventos')}
+                onClick={() => navigate('/eventos/novo')}
                 className='flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors cursor-pointer shadow-sm'
               >
                 <FaPlus className='text-xs' /> Criar evento
@@ -428,7 +425,7 @@ const Ong = () => {
           ) : (
             <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5'>
               {/* EventoCard também vai precisar de usar id futuramente */}
-              {eventosDaOng.map((evento) => <EventoCard key={evento.id || evento._id} evento={evento} />)}
+              {eventosDaOng.map((evento) => <EventoCard key={evento.id} evento={evento} />)}
             </div>
           )}
         </div>

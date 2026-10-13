@@ -4,6 +4,7 @@ import { FaArrowLeft, FaCircleCheck, FaPaw, FaWhatsapp } from 'react-icons/fa6'
 import { toast } from 'react-toastify'
 import { AdocaoContext } from '../context/AdocaoContext'
 import { assets } from '../assets/assets'
+import { gerarSigla, obterCor, whatsappOng } from '../utils/ong'
 
 const Campo = ({ id, rotulo, erro, textarea, opcoes, className = '', ...props }) => {
   const estilo = `w-full bg-white border rounded-lg px-4 py-3 text-sm outline-none transition-colors placeholder:text-muted ${erro ? 'border-recusado' : 'border-line focus:border-forest-500'}`;
@@ -123,7 +124,7 @@ const Doar = () => {
     <div className='min-h-screen bg-surface'>
       <div className='max-w-3xl mx-auto px-4 sm:px-6 py-8'>
 
-        <Link to={`/ongs/${ong._id}`} className='inline-flex items-center gap-2 text-sm text-muted hover:text-ink'>
+        <Link to={`/ongs/${ong.id}`} className='inline-flex items-center gap-2 text-sm text-muted hover:text-ink'>
           <FaArrowLeft className='text-xs' /> Voltar para {ong.nome}
         </Link>
 
@@ -151,13 +152,13 @@ const Doar = () => {
 
           {/* ONG que vai receber o pedido */}
           <div className='bg-white border border-line rounded-xl p-4 flex items-center gap-4'>
-            <div className={`w-14 h-14 rounded-xl ${ong.cor} text-white font-display text-lg font-bold flex items-center justify-center shrink-0`}>
-              {ong.sigla}
+            <div className={`w-14 h-14 rounded-xl ${obterCor(ong.id)} text-white font-display text-lg font-bold flex items-center justify-center shrink-0`}>
+              {gerarSigla(ong.nome)}
             </div>
             <div className='min-w-0'>
               <p className='text-[11px] text-muted'>Formulário de doação para</p>
               <p className='font-display text-xl font-bold text-forest-800'>{ong.nome}</p>
-              <p className='text-xs text-muted truncate'>{ong.local}</p>
+              <p className='text-xs text-muted truncate'>{ong.cidade || 'Local não informado'}</p>
             </div>
           </div>
 
@@ -173,13 +174,13 @@ const Doar = () => {
 
               <div className='flex flex-wrap items-center justify-center gap-3 mt-6'>
                 <Link
-                  to={`/ongs/${ong._id}`}
+                  to={`/ongs/${ong.id}`}
                   className='bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors'
                 >
                   Voltar para a ONG
                 </Link>
                 <a
-                  href={`https://wa.me/${ong.whatsapp}?text=${encodeURIComponent(`Olá! Acabei de enviar um formulário de doação do(a) ${dados.animal} pela Rede ADota.`)}`}
+                  href={`https://wa.me/${whatsappOng(ong)}?text=${encodeURIComponent(`Olá! Acabei de enviar um formulário de doação do(a) ${dados.animal} pela Rede ADota.`)}`}
                   target='_blank'
                   rel='noreferrer'
                   className='flex items-center gap-2 border border-line hover:border-brand-500 text-sm font-medium px-5 py-2.5 rounded-lg transition-colors'

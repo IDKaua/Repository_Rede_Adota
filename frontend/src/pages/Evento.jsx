@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { FaArrowLeft, FaCalendarDays, FaCheck, FaClock, FaFileLines, FaHeart, FaLocationDot, FaMoneyBillWave, FaPaw, FaScissors, FaSyringe, FaTriangleExclamation, FaUsers, FaWhatsapp } from 'react-icons/fa6'
 import { AdocaoContext } from '../context/AdocaoContext'
 import EventoCard from '../components/EventoCard'
+import { gerarSigla, obterCor, whatsappOng } from '../utils/ong'
 
 // Icones usados pelos detalhes especificos de cada tipo de evento
 const icones = {
@@ -31,7 +32,7 @@ const Evento = () => {
   const { eventoId } = useParams();
   const { eventos, buscarOng } = useContext(AdocaoContext);
 
-  const evento = eventos.find((item) => item._id === eventoId);
+  const evento = eventos.find((item) => item.id === Number(eventoId));
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -48,8 +49,8 @@ const Evento = () => {
     )
   }
 
-  const ong = buscarOng(evento.ong);
-  const outros = eventos.filter((item) => item._id !== evento._id).slice(0, 3);
+  const ong = buscarOng(evento.id_ong);
+  const outros = eventos.filter((item) => item.id !== evento.id).slice(0, 3);
 
   return (
     <div className='px-4 sm:px-6 lg:px-8 py-6'>
@@ -116,22 +117,23 @@ const Evento = () => {
           </ul>
         </div>
 
+        {ong && (
         <div className='bg-white border border-line rounded-xl p-5 flex flex-col'>
           <p className='text-[11px] text-muted mb-2'>Organizado por</p>
 
           <div className='flex items-center gap-2'>
-            <div className={`w-8 h-8 rounded-full ${ong.cor} text-white text-[10px] font-semibold flex items-center justify-center`}>
-              {ong.sigla}
+            <div className={`w-8 h-8 rounded-full ${obterCor(ong.id)} text-white text-[10px] font-semibold flex items-center justify-center`}>
+              {gerarSigla(ong.nome)}
             </div>
             <div>
               <p className='font-display font-semibold text-forest-800 leading-tight'>{ong.nome}</p>
-              <p className='text-[11px] text-muted'>{ong.local}</p>
+              <p className='text-[11px] text-muted'>{ong.cidade || 'Local não informado'}</p>
             </div>
           </div>
 
           <p className='text-sm text-muted leading-relaxed mt-3'>{ong.descricao}</p>
 
-          <Link to={`/ongs/${ong._id}`} className='text-sm font-medium text-brand-600 hover:text-brand-700 underline mt-3'>
+          <Link to={`/ongs/${ong.id}`} className='text-sm font-medium text-brand-600 hover:text-brand-700 underline mt-3'>
             Ver perfil da ONG
           </Link>
 
@@ -139,7 +141,7 @@ const Evento = () => {
 
           <p className='text-sm font-medium text-forest-800'>Dúvidas sobre o evento?</p>
           <a
-            href={`https://wa.me/${ong.whatsapp}?text=${encodeURIComponent(`Olá! Tenho uma dúvida sobre o evento "${evento.titulo}" que vi na Rede ADota.`)}`}
+            href={`https://wa.me/${whatsappOng(ong)}?text=${encodeURIComponent(`Olá! Tenho uma dúvida sobre o evento "${evento.titulo}" que vi na Rede ADota.`)}`}
             target='_blank'
             rel='noreferrer'
             className='flex items-center justify-center gap-2 bg-forest-700 hover:bg-forest-800 text-white text-sm font-medium py-2.5 rounded-lg transition-colors mt-3'
@@ -147,6 +149,7 @@ const Evento = () => {
             <FaWhatsapp /> Falar com a ONG
           </a>
         </div>
+        )}
       </div>
 
       {/* Outros eventos */}
@@ -160,7 +163,7 @@ const Evento = () => {
           </div>
 
           <div className='grid grid-cols-1 md:grid-cols-3 gap-5'>
-            {outros.map((item) => <EventoCard key={item._id} evento={item} />)}
+            {outros.map((item) => <EventoCard key={item.id} evento={item} />)}
           </div>
         </section>
       )}

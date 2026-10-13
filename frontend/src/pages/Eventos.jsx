@@ -39,7 +39,7 @@ const Eventos = () => {
         <p className='text-sm text-muted py-10 text-center'>Nenhum evento encontrado para esse filtro.</p>
       ) : (
         <div className='grid grid-cols-1 lg:grid-cols-2 gap-5'>
-          {eventosFiltrados.map((evento) => <EventoCard key={evento._id} evento={evento} />)}
+          {eventosFiltrados.map((evento) => <EventoCard key={evento.id} evento={evento} />)}
         </div>
       )}
     </div>

@@ -15,6 +15,7 @@ import NovoEvento from './pages/NovoEvento'
 import Adotar from './pages/Adotar'
 import Doar from './pages/Doar'
 import FormularioAdocao from './pages/FormularioAdocao';
+import CadastrarAnimal from './pages/CadastrarAnimal'
 
 const App = () => {
   return (
@@ -24,6 +25,7 @@ const App = () => {
         <Route path='/login' element={<Login />} />
         <Route path='/cadastro' element={<Login modoInicial='Cadastro' />} />
         <Route path='/eventos/novo' element={<NovoEvento />} />
+        <Route path='/animais/novo' element={<CadastrarAnimal />} />
         <Route path='/animais/:petId/adotar/formulario' element={<Adotar />} />
         <Route path='/ongs/:ongId/doar' element={<Doar />} />
 

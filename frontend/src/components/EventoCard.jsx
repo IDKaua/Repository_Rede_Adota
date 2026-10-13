@@ -6,12 +6,12 @@ const EventoCard = ({ evento }) => {
   return (
     <div className='bg-white border border-line rounded-xl overflow-hidden hover:shadow-md transition-shadow'>
 
-      <Link to={`/eventos/${evento._id}`} className='block'>
+      <Link to={`/eventos/${evento.id}`} className='block'>
         <img src={evento.imagem} alt={evento.titulo} className='w-full aspect-3/2 object-cover object-center' loading='lazy' />
       </Link>
 
       <div className='p-4'>
-        <Link to={`/eventos/${evento._id}`} className='font-display font-semibold text-forest-800 hover:text-brand-600 transition-colors'>
+        <Link to={`/eventos/${evento.id}`} className='font-display font-semibold text-forest-800 hover:text-brand-600 transition-colors'>
           {evento.titulo}
         </Link>
 
@@ -33,7 +33,7 @@ const EventoCard = ({ evento }) => {
             <span>{evento.destaque}</span>
           </div>
           <Link
-            to={`/eventos/${evento._id}`}
+            to={`/eventos/${evento.id}`}
             className='border border-brand-500 text-brand-600 hover:bg-brand-500 hover:text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors whitespace-nowrap'
           >
             Ver Detalhes
