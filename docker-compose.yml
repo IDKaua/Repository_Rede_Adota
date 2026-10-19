@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: adota_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123 # Mude para a sua senha real
+      POSTGRES_DB: rede_adota
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend # Caminho para a pasta do seu backend
+    container_name: adota_backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_USER=postgres
+      - DB_PASSWORD=password123
+      - DB_HOST=db       # Crucial: O host agora é o nome do serviço do banco de dados (db)
+      - DB_PORT=5432
+      - DB_NAME=rede_adota
+      - JWT_SECRET=chave_super_secreta_rede_adota
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend # Caminho para a pasta do seu frontend
+    container_name: adota_frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
