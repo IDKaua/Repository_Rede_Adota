@@ -13,11 +13,14 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
   backend:
     build: ./backend # Caminho para a pasta do seu backend
     container_name: adota_backend
     restart: always
+    depends_on:
+      - db
     ports:
       - "5000:5000"
     environment:
@@ -27,8 +30,6 @@ services:
       - DB_PORT=5432
       - DB_NAME=rede_adota
       - JWT_SECRET=chave_super_secreta_rede_adota
-    depends_on:
-      - db
 
   frontend:
     build: ./frontend # Caminho para a pasta do seu frontend
