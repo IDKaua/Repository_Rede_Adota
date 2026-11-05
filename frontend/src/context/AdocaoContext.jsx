@@ -167,6 +167,15 @@ const AdocaoContextProvider = (props) => {
 
     const buscarOng = (ongId) => ongs.find((item) => item.id === Number(ongId));
 
+    const recarregarOngs = async () => {
+        try {
+            const resOngs = await api.get('/ongs');
+            setListaOngs(resOngs.data);
+        } catch (erro) {
+            console.error('Erro ao recarregar ONGs:', erro);
+        }
+    };
+
     const atualizarOng = async (ongId, novosDados) => {
         try {
             const token = localStorage.getItem('token');
@@ -212,7 +221,7 @@ const AdocaoContextProvider = (props) => {
     }
 
     const value = {
-        pets, ongs, eventos, criarEvento, cadastrarPet, menuAberto, setMenuAberto, busca, setBusca, especie, setEspecie, porte, setPorte, sexo, setSexo, limparFiltros, filtrarPets, enviarDoacao, enviarSolicitacao, buscarOng, atualizarOng, ongLogada, entrarComoOng, sairDaConta, carregandoDados
+        pets, ongs, eventos, criarEvento, cadastrarPet, menuAberto, setMenuAberto, busca, setBusca, especie, setEspecie, porte, setPorte, sexo, setSexo, limparFiltros, filtrarPets, enviarDoacao, enviarSolicitacao, buscarOng, recarregarOngs, atualizarOng, ongLogada, entrarComoOng, sairDaConta, carregandoDados
     }
 
     return (

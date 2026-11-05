@@ -202,6 +202,24 @@ app.get('/api/ongs', async (req, res) => {
     }
 });
 
+// 6b. Rota Detalhes ONG (por ID)
+app.get('/api/ongs/:id', async (req, res) => {
+    try {
+        const query = `
+            SELECT o.*, e.logradouro, e.numero, e.complemento, e.bairro, e.cidade
+            FROM ong o
+            LEFT JOIN endereco e ON o.id_endereco = e.id
+            WHERE o.id = $1;
+        `;
+        const result = await pool.query(query, [req.params.id]);
+        if (result.rows.length === 0) return res.status(404).json({ erro: 'ONG não encontrada.' });
+        res.status(200).json(result.rows[0]);
+    } catch (erro) {
+        console.error('Erro Detalhes ONG:', erro);
+        res.status(500).json({ erro: 'Falha ao carregar a ONG.' });
+    }
+});
+
 // 7. Rota Detalhes Pet
 app.get('/api/pets/:id', async (req, res) => {
     try {

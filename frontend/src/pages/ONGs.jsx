@@ -86,7 +86,7 @@ const ONGs = () => {
                     {ong.nome}
                   </p>
                   <p className='flex items-center gap-1.5 text-xs text-muted mt-0.5'>
-                    <FaLocationDot className='text-brand-500' /> {ong.cidade ? `${ong.cidade} - ${ong.uf}` : 'Local não informado'}
+                    <FaLocationDot className='text-brand-500' /> {ong.cidade || 'Local não informado'}
                   </p>
                 </div>
               </div>

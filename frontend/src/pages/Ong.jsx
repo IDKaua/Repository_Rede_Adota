@@ -8,6 +8,7 @@ import {
 import { AdocaoContext } from '../context/AdocaoContext'
 import PetCard from '../components/PetCard'
 import EventoCard from '../components/EventoCard'
+import api from '../services/api'
 
 const abas = ['Sobre', 'Animais', 'Eventos'];
 
@@ -138,7 +139,7 @@ const Ong = () => {
           </p>
 
           <div className='flex flex-wrap items-center gap-x-5 gap-y-2 mt-3 text-xs text-muted'>
-            <span className='flex items-center gap-1.5'><FaLocationDot className='text-brand-500' /> {ong.cidade ? `${ong.cidade} - ${ong.uf}` : 'Local não informado'}</span>
+            <span className='flex items-center gap-1.5'><FaLocationDot className='text-brand-500' /> {ong.cidade || 'Local não informado'}</span>
             <span className='flex items-center gap-1.5'><FaPhone className='text-brand-500' /> {ong.telefone || 'Não informado'}</span>
             <span className='flex items-center gap-1.5'><FaEnvelope className='text-brand-500' /> {ong.email}</span>
           </div>
@@ -354,8 +355,8 @@ const Ong = () => {
                 </div>
                 <div>
                   <p className='text-[10px] text-muted font-bold tracking-wider uppercase mb-0.5'>Endereço Registado</p>
-                  <p className='text-forest-800 font-medium'>{ong.rua || 'Rua não informada'}, {ong.numero || 'S/N'} - {ong.bairro}</p>
-                  <p className='text-forest-800 font-medium'>{ong.cidade} - {ong.uf}</p>
+                  <p className='text-forest-800 font-medium'>{ong.logradouro || 'Rua não informada'}, {ong.numero || 'S/N'} - {ong.bairro}</p>
+                  <p className='text-forest-800 font-medium'>{ong.cidade || 'Local não informado'}</p>
                 </div>
               </div>
             </div>

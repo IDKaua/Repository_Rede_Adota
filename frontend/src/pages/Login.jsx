@@ -43,7 +43,7 @@ const camposVazios = {
 // Uma tela só: o estado "modo" troca entre entrar e cadastrar, sem mudar de página
 const Login = ({ modoInicial = 'Login' }) => {
 
-  const { entrarComoOng } = useContext(AdocaoContext);
+  const { entrarComoOng, recarregarOngs } = useContext(AdocaoContext);
   const navigate = useNavigate();
 
   const [modo, setModo] = useState(modoInicial);
